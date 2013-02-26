@@ -11,6 +11,7 @@ public abstract class CCGCard extends Card {
 
 	private Long owner;
 	private Long controller;
+	private int maxInDeck = 4;
 	
 	/**
 	 * 
@@ -51,6 +52,14 @@ public abstract class CCGCard extends Card {
 	public Message serialize(Player p) { 
 		Message m = super.serialize(p);
 		
+		if (controller != null)
+			m.put("controller", controller);
+		if (owner != null)
+			m.put("owner", owner);
+		if (owner == null && controller == null) { 
+			m.put("maxindeck", maxInDeck);
+		}
+		
 		// The base AdvancedGameObject creates the list and stores all non-secret stats/tags; 
 		// just append the secret ones if you're the controller.
 		for (Map.Entry<String, Statistic> stat : statistics.entrySet()) {
@@ -66,6 +75,14 @@ public abstract class CCGCard extends Card {
 			m.addToList("tags", t, p);
 		}
 		return m;
+	}
+
+	public void setMaxInDeck(int maxInDeck) {
+		this.maxInDeck = maxInDeck;
+	}
+
+	public int getMaxInDeck() {
+		return maxInDeck;
 	}
 	
 }

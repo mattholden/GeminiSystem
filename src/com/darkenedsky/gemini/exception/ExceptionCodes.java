@@ -40,7 +40,10 @@ public interface ExceptionCodes {
 	// GAME MODULES
 	CCG_DUPLICATE_DECKNAME = 3001,
 	CCG_INVALID_DECK = 3002,
-	CCG_DV_UNPURCHASED_CARD = 3100;
+
+	// deck validation
+	CCG_DV_UNPURCHASED_CARD = 3100,
+	CCG_DV_TOO_MANY_COPIES = 3101;
 	
 	
 }

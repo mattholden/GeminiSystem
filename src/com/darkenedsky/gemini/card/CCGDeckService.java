@@ -4,13 +4,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import org.json.simple.JSONObject;
 import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.LibrarySection;
 import com.darkenedsky.gemini.Message;
+import com.darkenedsky.gemini.exception.CCGDVTooManyCopiesException;
 import com.darkenedsky.gemini.exception.CCGDVUnpurchasedCardException;
 import com.darkenedsky.gemini.exception.CCGDeckValidationException;
 import com.darkenedsky.gemini.exception.CCGInvalidDeckException;
@@ -117,6 +120,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 	
 	public Vector<CCGDeckValidationException> validateDeck(Message m, Player p) throws Exception { 
 		Vector<CCGDeckValidationException> issues = new Vector<CCGDeckValidationException>();
+		HashMap<Integer, Integer> cardCount = new HashMap<Integer, Integer>();
 		
 		// get a list of all the cards you can access
 		Vector<Integer> legalCards = new Vector<Integer>(200);
@@ -141,8 +145,18 @@ public class CCGDeckService<TCard extends Card> extends Service {
 			if (!legalCards.contains(cardid)) { 
 				issues.add(new CCGDVUnpurchasedCardException(cardid));
 			}
+			Integer count = cardCount.get(cardid);
+			if (count == null) count = 0;
+			cardCount.put(cardid, count + (Integer)card.get("qty"));
 		}
 				
+		for (Map.Entry<Integer, Integer> count : cardCount.entrySet()) { 
+			CCGCard card = (CCGCard)library.getSection("cards").get(count.getKey());
+			if (card.getMaxInDeck() < count.getValue()) { 
+				issues.add(new CCGDVTooManyCopiesException(count.getKey()));
+			}
+		}
+		
 		return issues;
 	} 
 	
