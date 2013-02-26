@@ -17,6 +17,10 @@ public abstract class CCGCard extends Card {
 	 */
 	private static final long serialVersionUID = 5790615972027062731L;
 
+	public CCGCard(String englishName) { 
+		this(null, null, englishName);
+	}
+	
 	public CCGCard(Long objID, Long owner, String englishName) {
 		super(objID, englishName);		
 		this.owner = owner;

@@ -1,5 +1,6 @@
 package com.darkenedsky.gemini.exception;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 
 import com.darkenedsky.gemini.MessageSerializable;
@@ -72,5 +73,26 @@ public class GeminiException extends RuntimeException implements MessageSerializ
 		return m;
 	}
 	
+	/** Read the message of an SQL Exception to see if it's been set up to translate to a Gemini exception.
+	 * This occurs when we've used the "raise exception" syntax in a PostgreSQL function to return one of
+	 * our own errors. Will give you back a new instance of the correctly "translated" error if one is found;
+	 * otherwise simply returns the SQL Exception.
+	 * 
+	 * @param sql the SQL exception to translate
+	 * @return the translated exception if applicable, otherwise, the original SQLException
+	 */
+	@SuppressWarnings("unchecked")
+	public static Exception translateSQLException(SQLException sql) { 
+		
+		try { 
+			String msg = sql.getMessage();
+			Class<? extends GeminiException> clazz = (Class<? extends GeminiException>) Class.forName(msg);
+			return clazz.newInstance();
+		}
+		catch (Exception x) { 
+			return sql;
+		}
+		
+	}
 	
 }

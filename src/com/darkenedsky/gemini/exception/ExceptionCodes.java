@@ -1,6 +1,6 @@
 package com.darkenedsky.gemini.exception;
 
-/** Lookup interface for all exception codes thrown by the core Gemini module. 
+/** Lookup interface for all exception codes thrown by the core Gemini modules. 
  *  Each game project should extend this to add their own.
  *  Use the constants in the constructors of the Exception classes; in this way,
  *  we can guarantee that the exception codes don't fall out of sync with the constants here.
@@ -14,6 +14,9 @@ public interface ExceptionCodes {
 	
 	// CATCH-ALL FOR WHEN WE HAVE TO PROMOTE JAVA EXCEPTIONS TO GEMINI EXCEPTIONS
 	JAVA_EXCEPTION = 0,
+	
+	// SQL didn't return the number of rows we expected on an insert/update
+	SQL_UPDATE_FAILED = 100,
 	
 	// LOGIN/SESSION
 	INVALID_LOGIN = 1001,
@@ -32,9 +35,12 @@ public interface ExceptionCodes {
 	GAME_PLAYER = 2005,
 	NOT_EVERYONE_IS_READY = 2006,
 	INVALID_OBJECT = 2007,
-	INVALID_LIBRARY_SECTION = 2008;
+	INVALID_LIBRARY_SECTION = 2008,
 	
-
+	// GAME MODULES
+	CCG_DUPLICATE_DECKNAME = 3001,
+	CCG_INVALID_DECK = 3002,
+	CCG_DV_UNPURCHASED_CARD = 3100;
 	
 	
 }

@@ -61,7 +61,11 @@ public abstract class GameObject implements Comparable<GameObject>, MessageSeria
 	@Override
 	public Message serialize(Player p) {
 		Message m = new Message();		
-		m.put("name", name.get(p.getLanguage()));
+		String lang = Languages.ENGLISH;
+		if (p != null) { 
+			lang = p.getLanguage();
+		}
+		m.put("name", name.get(lang));
 		m.put("definitionid", getDefinitionID());
 		m.put("id", getObjectID());
 		return m;

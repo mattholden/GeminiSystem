@@ -1,6 +1,6 @@
 package com.darkenedsky.gemini;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Vector;
 import java.util.List;
 
 import org.jdom2.Element;
@@ -91,20 +91,20 @@ public class Message implements JSONAware, MessageSerializable {
 		Object o = object.get(key);
 		
 		// don't override an existing list
-		if (o != null && o instanceof ArrayList<?>) return;
+		if (o != null && o instanceof Vector<?>) return;
 		
-		object.put(key, new ArrayList<Message>());
+		object.put(key, new Vector<Message>());
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void addToList(String key, MessageSerializable o, Player player) { 
 		if (o == null) return;
-		((ArrayList<Message>)object.get(key)).add(o.serialize(player));
+		((Vector<Message>)object.get(key)).add(o.serialize(player));
 	}
 	@SuppressWarnings("unchecked")
 	public void addToList(String key, Message m) { 
 		if (m == null) return;
-		((ArrayList<Message>)object.get(key)).add(m);
+		((Vector<Message>)object.get(key)).add(m);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -147,10 +147,15 @@ public class Message implements JSONAware, MessageSerializable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public ArrayList<MessageSerializable> getList(String key) { 
-		return (ArrayList<MessageSerializable>)object.get(key);
+	public List<MessageSerializable> getSerializableList(String key) { 
+		return (List<MessageSerializable>)object.get(key);
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<JSONObject> getJSONList(String key) { 
+		return (List<JSONObject>)object.get(key);
+	}
+	
 	@Override
 	public String toJSONString() {
 		return object.toJSONString();
@@ -171,9 +176,9 @@ public class Message implements JSONAware, MessageSerializable {
 				Message m = (Message)o;
 				e.addContent(m.toXML(s));
 			}
-			else if (o instanceof ArrayList<?>) { 
+			else if (o instanceof Vector<?>) { 
 				@SuppressWarnings("unchecked")
-				ArrayList<Message> list = (ArrayList<Message>)o;
+				Vector<Message> list = (Vector<Message>)o;
 				Element l = new Element(s);
 				for (Message m : list) { 
 					l.addContent(m.toXML("object"));
@@ -186,6 +191,12 @@ public class Message implements JSONAware, MessageSerializable {
 		return e;
 	}
 
+	public boolean has(String list) { 
+		return (object.get(list) != null);
+	}
+	
+	
+	
 	public JSONObject toJSON() {
 		return object;
 	}
