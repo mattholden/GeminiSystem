@@ -1,61 +1,25 @@
 package com.darkenedsky.gemini.stats;
-
 import com.darkenedsky.gemini.GameObject;
-import com.darkenedsky.gemini.Message;
-import com.darkenedsky.gemini.MessageSerializable;
-import com.darkenedsky.gemini.Player;
 
-public class Tag implements MessageSerializable {
+public class Tag extends GameObject {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2048071936243398847L;
-	private String tag;
-	private GameObject source;
 	
-	public Tag(String t, GameObject src) { 
-		tag = t.toLowerCase();
-		source = src;		
+	public Tag(int defID, String englishName) { 
+		super(defID, null, englishName);
+	}
+	
+	public Tag(int defID, Long objID, String englishName) { 
+		super(defID, objID, englishName);
 	}
 
 	private boolean secret = false;
 	
 	public boolean isSecret() { 
 		return secret;
-	}
-
-
-	public String toString(){ return tag; }
-	public boolean equals(Object other) { 
-		if (other instanceof Tag || other instanceof String)
-			return tag.equalsIgnoreCase(other.toString());
-		else return false;
-	}
-
-	public String getTag() {
-		return tag;
-	}
-
-	public void setTag(String tag) {
-		this.tag = tag;
-	}
-
-	public GameObject getSource() {
-		return source;
-	}
-
-	public void setSource(GameObject source) {
-		this.source = source;
-	}
-	
-
-	@Override
-	public Message serialize(Player p) { 
-		Message m = new Message();
-		m.put("tag", tag);
-		m.put("source", source, p);
-		return m;
 	}
 	
 }

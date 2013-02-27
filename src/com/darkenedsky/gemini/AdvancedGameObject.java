@@ -1,17 +1,15 @@
 package com.darkenedsky.gemini;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import com.darkenedsky.gemini.GameObject;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.stats.Bonus;
-import com.darkenedsky.gemini.stats.HasStatsAndTags;
+import com.darkenedsky.gemini.stats.HasStats;
 import com.darkenedsky.gemini.stats.Modifier;
 import com.darkenedsky.gemini.stats.Statistic;
-import com.darkenedsky.gemini.stats.Tag;
 
-public class AdvancedGameObject extends GameObject implements HasStatsAndTags {
+public class AdvancedGameObject extends GameObject implements HasStats {
 
 	/**
 	 * 
@@ -19,36 +17,6 @@ public class AdvancedGameObject extends GameObject implements HasStatsAndTags {
 	private static final long serialVersionUID = 5790615972027062731L;
 
 	protected ConcurrentHashMap<String, Statistic> statistics = new ConcurrentHashMap<String, Statistic>(20);
-	protected ConcurrentHashMap<String, Tag> tags = new ConcurrentHashMap<String, Tag>();
-	
-	/* (non-Javadoc)
-	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#getTags()
-	 */
-	@Override
-	public Vector<String> getTags() { 
-		Vector<String> tagz = new Vector<String>();
-		tagz.addAll(tags.keySet());
-		return tagz;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#addTag(java.lang.String, com.darkenedsky.gemini.GameObject)
-	 */
-	@Override
-	public void addTag(String tag, GameObject src) {
-		String tg = tag.toLowerCase();
-		Tag t = new Tag(tg, src);
-		tags.put(tg, t);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#hasTag(java.lang.String)
-	 */
-	@Override
-	public boolean hasTag(String tag) { 
-		String t = tag.toLowerCase();
-		return (tags.get(t) != null);
-	}
 	
 
 	/* (non-Javadoc)
@@ -74,9 +42,6 @@ public class AdvancedGameObject extends GameObject implements HasStatsAndTags {
 	public void dropEffects(GameObject source) throws Exception { 
 		for (Statistic e : statistics.values()) 
 			e.dropBonuses(source);
-		for (Tag t : tags.values())
-			if (t.getSource().equals(source))
-				tags.remove(t.getTag());
 	}
 
 	/* (non-Javadoc)
@@ -99,8 +64,8 @@ public class AdvancedGameObject extends GameObject implements HasStatsAndTags {
 	}
 
 
-	public AdvancedGameObject(Long objID, String englishName) {
-		super(objID, englishName);		
+	public AdvancedGameObject(int defID, Long objID, String englishName) {
+		super(defID, objID, englishName);		
 	}
 	
 	@Override
@@ -120,15 +85,12 @@ public class AdvancedGameObject extends GameObject implements HasStatsAndTags {
 	
 			if (stat.getValue().isSecret()) continue;
 			Message s = stat.getValue().serialize(p);
-			s.put("stat", stat.getKey());
-			m.addToList("stats", s, p);
+			if (s != null) { 
+				s.put("stat", stat.getKey());
+				m.addToList("stats", s, p);
+			}
 		}
 		
-		m.addList("tags");
-		for (Tag t : tags.values()) { 
-			if (t.isSecret()) continue;
-			m.addToList("tags", t, p);
-		}
 		return m;
 	}
 	

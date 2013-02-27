@@ -1,7 +1,9 @@
 package com.darkenedsky.gemini.stats;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.darkenedsky.gemini.GameObject;
+import com.darkenedsky.gemini.Languages;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.MessageSerializable;
 import com.darkenedsky.gemini.Player;
@@ -17,7 +19,34 @@ public class Statistic implements MessageSerializable {
 	 */
 	private static final long serialVersionUID = 1929381674148057599L;
 
-	public Statistic(int i) { baseValue = i; } 
+	private ConcurrentHashMap<String, String> name = new ConcurrentHashMap<String, String>();
+	
+	private static class StatVisibility { 
+		public int visibility;
+		private StatVisibility(int vis) { 
+			visibility = vis;
+		}		
+	};
+	
+	public static final StatVisibility
+		ALWAYS_HIDDEN = new StatVisibility(0),
+		HIDDEN_IF_ZERO = new StatVisibility(1),
+		ALWAYS_VISIBLE = new StatVisibility(2);
+	
+	private StatVisibility visibility = ALWAYS_VISIBLE;
+	
+	public Statistic(String enName) { 
+		this(enName, 0, ALWAYS_VISIBLE);
+	}
+	public Statistic(String enName, int i) { 
+		this(enName, i, ALWAYS_VISIBLE);
+	}
+	
+	public Statistic(String enName, int i, StatVisibility viz) { 
+		baseValue = i;
+		name.put(Languages.ENGLISH, enName);
+		visibility = viz;
+	} 
 	
 	private Integer minCap = null, maxCap = null;
 	
@@ -38,13 +67,7 @@ public class Statistic implements MessageSerializable {
 	public void clearBonuses() { 
 		this.bonuses.clear();
 	}
-	
-	public Statistic() { this(0); }
-	
-	public String toString() { 
-		return Integer.toString(this.getBaseValue());
-	}
-	
+		
 	public int getValueWithBonuses() { 
 		int total = baseValue;
 		for (Bonus b : getBonuses()) { 
@@ -106,9 +129,20 @@ public class Statistic implements MessageSerializable {
 	
 	@Override
 	public Message serialize(Player p) {
+		
+		if (this.visibility.visibility == ALWAYS_HIDDEN.visibility) { 
+			return null;
+		}
+		if (this.visibility.visibility == HIDDEN_IF_ZERO.visibility && this.getValueWithBonuses() == 0) { 
+			return null;
+		}
+		
 		Message m = new Message();
 		m.put("basevalue", getBaseValue());
 		m.put("currentvalue", this.getValueWithBonuses());
+		
+		String lang = (p == null) ? Languages.ENGLISH : p.getLanguage();
+		m.put("name", this.name.get(lang));
 		
 		// You don't need this when you're playing but might be nice to print on a "character sheet"
 		if (p == null) { 

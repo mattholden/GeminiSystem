@@ -9,8 +9,8 @@ public class Card extends AdvancedGameObject {
 	 */
 	private static final long serialVersionUID = 2552819634147335453L;
 
-	public Card(Long objID, String englishName) {
-		super(objID, englishName);
+	public Card(int defID, Long objID, String englishName) {
+		super(defID, objID, englishName);		
 	}
 
 	public void onDrawn() throws Exception { /* Deliberately blank */}

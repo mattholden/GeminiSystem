@@ -1,17 +1,11 @@
 package com.darkenedsky.gemini.stats;
 import java.util.Map;
-import java.util.Vector;
 import com.darkenedsky.gemini.GameObject;
 import com.darkenedsky.gemini.stats.Bonus;
 import com.darkenedsky.gemini.stats.Modifier;
 
-public interface HasStatsAndTags {
+public interface HasStats {
 
-	public abstract Vector<String> getTags();
-
-	public abstract void addTag(String tag, GameObject src);
-
-	public abstract boolean hasTag(String tag);
 
 	public abstract Statistic getStat(String stat);
 

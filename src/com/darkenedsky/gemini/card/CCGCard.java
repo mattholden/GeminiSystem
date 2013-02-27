@@ -1,34 +1,48 @@
 package com.darkenedsky.gemini.card;
-
 import java.util.Map;
-
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.stats.Statistic;
-import com.darkenedsky.gemini.stats.Tag;
 
 public abstract class CCGCard extends Card {
 
 	private Long owner;
 	private Long controller;
 	private int maxInDeck = 4;
+	private boolean tapped = false;
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 5790615972027062731L;
 
-	public CCGCard(String englishName) { 
-		this(null, null, englishName);
+	public CCGCard(int defID, String englishName) { 
+		this(defID, null, null, englishName);
 	}
 	
-	public CCGCard(Long objID, Long owner, String englishName) {
-		super(objID, englishName);		
+	public CCGCard(int defID, Long objID, Long owner, String englishName) {
+		super(defID, objID, englishName);		
 		this.owner = owner;
 		controller = owner;
 	}
 
+	public boolean isTapped() { 
+		return tapped;
+	}
 
+	public void onTapped() throws Exception { } 
+	public void onUntapped() throws Exception { } 
+	
+	public void tap() throws Exception { 
+		tapped = true;
+		onTapped();
+	}
+	
+	public void untap() throws Exception { 
+		tapped = false;
+		onUntapped();
+	}
+	
 	public Long getController() {
 		return controller;
 	}
@@ -52,12 +66,13 @@ public abstract class CCGCard extends Card {
 	public Message serialize(Player p) { 
 		Message m = super.serialize(p);
 		
-		if (controller != null)
-			m.put("controller", controller);
-		if (owner != null)
-			m.put("owner", owner);
 		if (owner == null && controller == null) { 
 			m.put("maxindeck", maxInDeck);
+		}
+		else { 
+			m.put("controller", controller);
+			m.put("owner", owner);
+			m.put("tapped", tapped);
 		}
 		
 		// The base AdvancedGameObject creates the list and stores all non-secret stats/tags; 
@@ -70,10 +85,6 @@ public abstract class CCGCard extends Card {
 			m.addToList("stats", s, p);
 		}
 		
-		for (Tag t : tags.values()) { 
-			if (!t.isSecret() || (p != null && p.getPlayerID() != this.controller)) continue;
-			m.addToList("tags", t, p);
-		}
 		return m;
 	}
 

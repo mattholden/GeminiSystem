@@ -12,8 +12,8 @@ public class CardSet<TCard extends Card> extends GameObject {
 	
 	private Vector<TCard> cards = new Vector<TCard>();
 	
-	public CardSet(Long objID, String englishName) {
-		super(objID, englishName);		
+	public CardSet(int defID, Long objID, String englishName) {
+		super(defID, objID, englishName);		
 	}
 
 	protected void add(TCard card) { 

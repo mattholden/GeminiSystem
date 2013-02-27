@@ -17,6 +17,10 @@ public abstract class GameObject implements Comparable<GameObject>, MessageSeria
 	/** Object ID. Will be null on definition objects. */
 	private Long objectID;
 	
+	/** Definition ID */
+	private int definitionID;
+	
+	
 	@Override
 	public String toString() { 
 		return name.get(Languages.ENGLISH) + " [" + getClass().getName() + " DefID:" + getDefinitionID() + ", ObjID:"+ objectID + "]";
@@ -29,9 +33,10 @@ public abstract class GameObject implements Comparable<GameObject>, MessageSeria
 		else return false;
 	}
 	
-	public GameObject(Long objID, String englishName) {	
+	public GameObject(int defID, Long objID, String englishName) {	
 		name.put("en", englishName);
 		objectID = objID;
+		definitionID = defID;
 	}
 	
 	public Long getObjectID() { 
@@ -39,12 +44,12 @@ public abstract class GameObject implements Comparable<GameObject>, MessageSeria
 	}
 	
 	public int getDefinitionID() { 
-		return hashCode();
+		return definitionID;
 	}
 	
 	@Override
 	public int hashCode() { 
-		return getIDString().hashCode();
+		return getDefinitionID();
 	}
 	
 	public String getIDString() { 
