@@ -94,4 +94,19 @@ public class AdvancedGameObject extends GameObject implements HasStats {
 		return m;
 	}
 	
+	@Override
+	public boolean hasKeywordOrTag(String field) { 
+		return (statistics.get(field).getValueWithBonuses() > 0);
+	}
+	
+	@Override
+	public final void addKeyword(String field, String name) { 
+		statistics.put(field, new Statistic(name, 0, Statistic.HIDDEN_IF_ZERO));
+	}
+	
+	@Override
+	public final void addTag(String field, String name) { 
+		statistics.put(field, new Statistic(name, 0, Statistic.ALWAYS_HIDDEN));
+	}
+	
 }

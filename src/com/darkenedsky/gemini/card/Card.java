@@ -14,6 +14,7 @@ public class Card extends AdvancedGameObject {
 	}
 
 	public void onDrawn() throws Exception { /* Deliberately blank */}
+	public void onDiscarded() throws Exception { /* Deliberately blank */ }
 	
 	
 }

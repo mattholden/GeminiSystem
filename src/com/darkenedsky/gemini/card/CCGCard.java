@@ -33,14 +33,8 @@ public abstract class CCGCard extends Card {
 	public void onTapped() throws Exception { } 
 	public void onUntapped() throws Exception { } 
 	
-	public void tap() throws Exception { 
-		tapped = true;
-		onTapped();
-	}
-	
-	public void untap() throws Exception { 
-		tapped = false;
-		onUntapped();
+	public void setTapped(boolean tap) throws Exception { 
+		tapped = tap;		
 	}
 	
 	public Long getController() {

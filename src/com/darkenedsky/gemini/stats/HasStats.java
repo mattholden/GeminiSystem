@@ -18,4 +18,10 @@ public interface HasStats {
 	public abstract void addBonus(int stat, GameObject source, Modifier mod,
 			String conditional);
 
+	public boolean hasKeywordOrTag(String field);
+	
+	public void addKeyword(String field, String name);
+	
+	public void addTag(String field, String name);
+	
 }
