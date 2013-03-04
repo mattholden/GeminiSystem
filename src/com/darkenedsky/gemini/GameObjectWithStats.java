@@ -9,7 +9,7 @@ import com.darkenedsky.gemini.stats.HasStats;
 import com.darkenedsky.gemini.stats.Modifier;
 import com.darkenedsky.gemini.stats.Statistic;
 
-public class AdvancedGameObject extends GameObject implements HasStats {
+public class GameObjectWithStats extends GameObject implements HasStats {
 
 	/**
 	 * 
@@ -64,7 +64,7 @@ public class AdvancedGameObject extends GameObject implements HasStats {
 	}
 
 
-	public AdvancedGameObject(int defID, Long objID, String englishName) {
+	public GameObjectWithStats(int defID, Long objID, String englishName) {
 		super(defID, objID, englishName);		
 	}
 	

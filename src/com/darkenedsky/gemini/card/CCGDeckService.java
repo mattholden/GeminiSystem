@@ -14,6 +14,7 @@ import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.LibrarySection;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.exception.CCGDVTooManyCopiesException;
+import com.darkenedsky.gemini.exception.CCGDVTotalDeckSizeException;
 import com.darkenedsky.gemini.exception.CCGDVUnpurchasedCardException;
 import com.darkenedsky.gemini.exception.CCGDeckValidationException;
 import com.darkenedsky.gemini.exception.CCGInvalidDeckException;
@@ -29,18 +30,28 @@ public class CCGDeckService<TCard extends Card> extends Service {
 	private int serviceID;
 
 	/** The game's Library */
-	private Library library;
+	protected Library library;
 
 	/** JDBC Connection */
 	private JDBCConnection jdbc;
+	
+	private int minDeckSize = 40, maxDeckSize = 100;
 
-	public CCGDeckService(int svcid, JDBCConnection jDB, Library lib) throws Exception {
+	public CCGDeckService(int svcid, int minSize, int maxSize, JDBCConnection jDB, Library lib) throws Exception {
 		serviceID = svcid;
 		jdbc = jDB;
 		library = lib;
+		minDeckSize = minSize;
+		maxDeckSize = maxSize;
 
 
-
+		handlers.put(CCG_GET_VALID_CARDS, new Handler(null) { 
+			@Override
+			public void processMessage(Message m, Player p) throws Exception { 
+				getValidCards(m, p);
+			}
+		});
+		
 		handlers.put(CCG_GET_DECKS, new Handler(null) {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
@@ -118,46 +129,76 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		}
 	}
 
-	public Vector<CCGDeckValidationException> validateDeck(Message m, Player p) throws Exception {
-		Vector<CCGDeckValidationException> issues = new Vector<CCGDeckValidationException>();
-		HashMap<Integer, Integer> cardCount = new HashMap<Integer, Integer>();
-
+	
+	protected HashMap<Integer, CCGCard> getValidCardsMap(Player p) throws Exception { 
+	
 		// get a list of all the cards you can access
-		Vector<Integer> legalCards = new Vector<Integer>(200);
+		HashMap<Integer, CCGCard> legalCards = new HashMap<Integer, CCGCard>(200);
 		PreparedStatement ps = jdbc.prepareStatement("select * from ccg_get_usable_cards(?,?);");
 		ps.setLong(1, p.getPlayerID());
 		ps.setInt(2, serviceID);
 		ResultSet set = ps.executeQuery();
 		if (set.first()) {
 			while (true) {
-				legalCards.add(set.getInt("cardid"));
+				legalCards.put(set.getInt("cardid"), (CCGCard)library.getSection("cards").get(set.getInt("cardid")));
 				if (set.isLast()) break;
 				set.next();
 			}
 		}
 		set.close();
-
-		// Now we know what cards the player can use...
-		// See if he's trying to use any he can't.
+		return legalCards;
+	}
+	
+	public void getValidCards(Message m, Player p) throws Exception { 
+		Message msg = new Message(CCG_GET_VALID_CARDS);
+		msg.addList("cards");
+		
+		for (Map.Entry<Integer, CCGCard> card : getValidCardsMap(p).entrySet()) { 
+			msg.addToList("cards", card.getValue().serialize(null));
+		}
+		p.pushOutgoingMessage(msg);
+	}
+	
+	private final Vector<CCGDeckValidationException> validate(Message m, Player p) throws Exception { 
+	
+		Map<Integer, Integer> cardCount = new HashMap<Integer, Integer>(20);
 		List<JSONObject> cards = m.getJSONList("cards");
 		for (JSONObject card : cards) {
-			Integer cardid = (Integer)(card.get("definitionid"));
-			if (!legalCards.contains(cardid)) {
-				issues.add(new CCGDVUnpurchasedCardException(cardid));
-			}
+			Integer cardid = (Integer)(card.get("definitionid"));			
+			
 			Integer count = cardCount.get(cardid);
 			if (count == null) count = 0;
-			cardCount.put(cardid, count + (Integer)card.get("qty"));
+			Integer q = (Integer)card.get("qty");
+			cardCount.put(cardid, count + q);			
 		}
-
+		return validateDeck(cardCount, p);
+	}
+	
+	public Vector<CCGDeckValidationException> validateDeck(Map<Integer, Integer> cardCount, Player p) throws Exception {
+	
+		Vector<CCGDeckValidationException> issues = new Vector<CCGDeckValidationException>();
+		int total = 0;
+		
+		HashMap<Integer, CCGCard> legalCards = getValidCardsMap(p);
+		
 		// Complain if they have more copies of a particular card in the deck than they should
 		for (Map.Entry<Integer, Integer> count : cardCount.entrySet()) {
-			CCGCard card = (CCGCard)library.getSection("cards").get(count.getKey());
+			CCGCard card = legalCards.get(count.getKey());
+			if (card == null) {
+				issues.add(new CCGDVUnpurchasedCardException(count.getKey()));
+			}
+		
 			if (card.getMaxInDeck() < count.getValue()) {
 				issues.add(new CCGDVTooManyCopiesException(count.getKey()));
 			}
+			total += count.getValue();
 		}
 
+		// check total deck size
+		if (minDeckSize > total || maxDeckSize < total) { 
+			issues.add(new CCGDVTotalDeckSizeException(minDeckSize, maxDeckSize, total));
+		}
+		
 		return issues;
 	}
 
@@ -181,7 +222,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 				reply.addList("problems");
 
 				boolean hasErrors = false;
-				Vector<CCGDeckValidationException> issues = validateDeck(m, p);
+				Vector<CCGDeckValidationException> issues = validate(m, p);
 				for (CCGDeckValidationException issue : issues) {
 					if (issue.isError()) {
 						hasErrors = true;
@@ -368,5 +409,73 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		}
 	}
 
+	public final Vector<CCGDeckValidationException> validateDeck(long deckid, Player p) throws Exception { 
+		return validateDeck(getDeckCards(deckid), p);
+	}
+	
+	public final Map<Integer, Integer> getDeckCards(long deckid) throws Exception { 
+	
+		PreparedStatement ps1 = jdbc.prepareStatement("select * from ccg_deckcards where deckid = ?;");
+	
+		ps1.setLong(1, deckid);
+		ResultSet rs1 = null;
+		try {
+			
+			// get a list of all the cards in the deck
+			rs1 = ps1.executeQuery();
+			HashMap<Integer, Integer> cardCount = new HashMap<Integer, Integer>(20);
+			if (rs1.first()) {
+				while (true) {
+					int defid = rs1.getInt("definitionid");
+					int qty = rs1.getInt("qty");
+					cardCount.put(defid, qty);
+										
+					if (rs1.isLast())
+						break;
+					rs1.next();
+				}
+			}
+			rs1.close();
+			return cardCount;
+			
+		} catch (Exception x) {
+			if (rs1 != null)
+				rs1.close();
+			throw x;
+		}
+	}
+		
+	
+	public CardDeck<TCard> spawnDeck(CardGame<TCard, ?> g, Player p, long deckid) throws Exception {
+
+		LibrarySection lib = library.getSection("cards");
+		
+			Map<Integer, Integer> cardCount = getDeckCards(deckid);
+			
+			// Can't spawn if any errors exist.
+			// We might not need this because we validate when you select the deck for the game,
+			// but since we don't have any way to prevent the deck from being edited between the time it's
+			// selected for the game and the time the game starts, be slow and safe here for now.
+			for (CCGDeckValidationException x : validateDeck(cardCount, p)) { 
+				if (x.isError()) { 
+					throw x;
+				}
+			}
+			
+			// spawn the cards
+			CardDeck<TCard> deck = new CardDeck<TCard>();			
+			for (Map.Entry<Integer, Integer> card : cardCount.entrySet()) { 
+				@SuppressWarnings("unchecked")
+				Class<TCard> defClass = (Class<TCard>) lib.get(card.getKey()).getClass();
+				Constructor<TCard> defCon = defClass.getConstructor(Long.class, Long.class);
+				for (int i = 0; i < card.getValue(); i++) {
+					deck.add(defCon.newInstance(g.getNextObjectID(), p.getPlayerID()));
+				}
+			}
+			
+			deck.shuffle();
+			return deck;
+		
+	}
 
 }

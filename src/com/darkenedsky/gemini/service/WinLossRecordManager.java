@@ -57,6 +57,31 @@ public class WinLossRecordManager {
 		return update(playerid, 0,0,1);
 	}
 	
+	/** Get the win-loss record for a player.  
+	 *  @param pid player ID
+	 *  @return their win-loss record
+	 */
+	public WinLossRecord get(long playerid) throws Exception { 
+		PreparedStatement ps = jdbc.prepareStatement("select * from winlossrecords where serviceid = ? and playerid = ?;");
+		ps.setInt(1, serviceID);
+		ps.setLong(2, playerid);
+		ResultSet set = null;
+		WinLossRecord record = null;
+		try { 
+			set = ps.executeQuery();
+			if (set.first()) { 
+				record = new WinLossRecord(set);
+			}
+			set.close();
+			return record;
+		}
+		catch (Exception x) { 
+			if (set != null) 
+				set.close();
+			throw x;
+		}
+	}
+	
 	/** Update the database to reflect newer scores
 	 *  
 	 * @param playerid the player ID to update

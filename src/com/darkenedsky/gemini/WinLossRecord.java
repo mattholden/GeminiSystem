@@ -18,8 +18,6 @@ public class WinLossRecord implements MessageSerializable {
 	public Message serialize(Player p) {
 		
 		Message m = new Message();
-		m.put("serviceid", serviceID);
-		m.put("playerid", playerID);
 		m.put("wins", wins);
 		m.put("losses", losses);
 		m.put("draws", draws);

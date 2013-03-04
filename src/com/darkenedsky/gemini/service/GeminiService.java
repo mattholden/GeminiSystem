@@ -1,5 +1,4 @@
 package com.darkenedsky.gemini.service;
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Vector;
@@ -9,13 +8,14 @@ import com.darkenedsky.gemini.GameCharacter;
 import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.card.CCGDeckService;
 import com.darkenedsky.gemini.exception.GeminiException;
 import com.darkenedsky.gemini.exception.InvalidActionException;
 import com.darkenedsky.gemini.exception.JavaException;
 
 /** The service that processes incoming messages, spawns Games, handles logins and other Sessions, etc.
  *  Extend this class for each game "service" (FKA projects) that you wish to run. */
-public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TGame extends Game<TChar, TPlay>> implements ActionList {
+public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TGame extends Game<TChar>> implements ActionList {
 
 	/**
 	 * 
@@ -51,21 +51,29 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public GeminiService(Class<TGame> theGameClass, Class<TPlay> thePlayerClass, Library lib, File settingsFile) throws SQLException, ClassNotFoundException, IOException, Exception { 
-		playerClass = thePlayerClass;		
-		settings = Message.parseXMLFile(settingsFile.getAbsolutePath());		
+	public GeminiService(Class<TGame> theGameClass, Class<TPlay> thePlayerClass, Library lib, String settingsFile) throws SQLException, ClassNotFoundException, IOException, Exception { 
+				
+		playerClass = thePlayerClass;	
+		settings = Message.parseXMLFile(settingsFile);	
+		System.out.println("XML : " + settings.getString("loaded_from_file"));
+		System.out.println("Starting up servlet for " + settings.getString("servicename"));
+		System.out.println(settings.getString("database_password"));
 		jdbc = new JDBCConnection(settings.getString("database_user"), settings.getString("database_password"), settings.getString("database_path"), settings.getString("database_driver"));		
-		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings);		
 		gameCacheService = new GameCacheService<TGame>(theGameClass, settings, jdbc, lib);
 		addService(gameCacheService);
+	
+		// deliberately don't add the Session Manager as a service using addService(); its actions behave 
+		// differently because the user might not be logged in when interacting with them.
+		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings, gameCacheService.getWinLossRecordManager());		
+		
 	}
 
-	
+		
 	/** Accessor for the settings created from the XML settings file. */
 	public Message getSettings() { 
 		return settings;
 	}
-
+	
 	/** Accessor for the JDBC connection.
 	 *  
 	 * @return the JDBC connection object
@@ -85,9 +93,14 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	 *  
 	 * @param plug the new plugin to add.
 	 */
-	protected void addService(Service plug) { 
+	public void addService(Service plug) { 
 		plug.init();
 		services.add(plug);
+		
+		// this is really cheating but easiest way to hook this in without a lot of pain
+		if (plug instanceof CCGDeckService<?>) { 
+			this.gameCacheService.setDeckService((CCGDeckService<?>)plug);
+		}
 	}
 
 	/** Process an incoming message from the server. Note that this is different from the interface's

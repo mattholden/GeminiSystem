@@ -18,11 +18,11 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	protected ConcurrentHashMap<String, Statistic> statistics = new ConcurrentHashMap<String, Statistic>(20);
 	
 	
-	private Game<? extends GameCharacter, ? extends Player> game;
+	private Game<? extends GameCharacter> game;
 	
-	public Game<? extends GameCharacter, ? extends Player> getGame() { return game; }
+	public Game<? extends GameCharacter> getGame() { return game; }
 	
-	public void setGame(Game<? extends GameCharacter, ? extends Player> game) { 
+	public void setGame(Game<? extends GameCharacter> game) { 
 		this.game = game;
 	}
 	

@@ -43,7 +43,8 @@ public interface ExceptionCodes {
 
 	// deck validation
 	CCG_DV_UNPURCHASED_CARD = 3100,
-	CCG_DV_TOO_MANY_COPIES = 3101;
+	CCG_DV_TOO_MANY_COPIES = 3101,
+	CCG_DV_TOTAL_DECK_SIZE = 3102;
 	
 	
 }

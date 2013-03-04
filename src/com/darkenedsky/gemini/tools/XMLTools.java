@@ -186,14 +186,21 @@ public abstract class XMLTools {
 	
 	/** Read a file and return an XML element
 	 *   @param file File path
+	 *   @param addLoadedFrom if true, add an element stating where the file was loaded from.
 	 *   @return the XML root element
 	 */
-	public static Element loadXMLFile(String file)  throws JDOMException, IOException { 
+	public static Element loadXMLFile(String file, boolean addLoadedFrom)  throws JDOMException, IOException { 
 		if (file == null) return null;
 		
 			Document doc = null;
-			doc = sax.build(file);
-			return (doc.getRootElement());
+			doc = sax.build(file);			
+			Element e = (doc.getRootElement());
+			if (addLoadedFrom) { 
+				Element from = new Element("loaded_from_file");
+				from.setText(doc.getBaseURI());
+				e.addContent(from);
+			}
+			return e;
 		}
 
 	/** Convenience method to convert an XML element into a compact-format string

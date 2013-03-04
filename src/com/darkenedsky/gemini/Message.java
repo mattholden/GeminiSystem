@@ -184,8 +184,7 @@ public class Message implements JSONAware, MessageSerializable {
 					l.addContent(m.toXML("object"));
 				}
 				e.addContent(l);
-			}
-			
+			}			
 		}
 		
 		return e;
@@ -208,7 +207,7 @@ public class Message implements JSONAware, MessageSerializable {
 	
 
 	public static Message parseXMLFile(String filename) throws JDOMException, IOException {  
-		Element e = XMLTools.loadXMLFile(filename);
+		Element e = XMLTools.loadXMLFile(filename, true);
 		return new Message(e);
 	}
 	

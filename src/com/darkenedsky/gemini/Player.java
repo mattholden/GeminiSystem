@@ -16,8 +16,10 @@ public class Player implements MessageSerializable, Gender {
 	private long playerID;
 	private String username;
 	private String language = "en";
-	private int gender = 0;
+	private int gender = Gender.GENDER_UNDISCLOSED;
+	
 	private Vector<Long> currentGameIDs = new Vector<Long>();
+	private WinLossRecord record = null;
 	
 	public Player(ResultSet set) throws SQLException { 
 		username = set.getString("username");
@@ -60,6 +62,13 @@ public class Player implements MessageSerializable, Gender {
 		return false;
 	}
 	
+	public WinLossRecord getRecord() { 
+		return record;
+	}
+	public void setRecord(WinLossRecord rec) { 
+		record = rec;
+	}
+	
 	public long getPlayerID() {
 		return playerID;
 	}
@@ -92,6 +101,10 @@ public class Player implements MessageSerializable, Gender {
 		m.put("playerid", playerID);
 		m.put("language", language);
 		m.put("gender", gender);
+		
+		if (record != null)
+			m.put("record", record, p);
+		
 		return m;
 	}
 	

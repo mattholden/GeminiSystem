@@ -4,7 +4,7 @@ import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 
-public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<TCard>, TPlay extends Player> extends Game<TChar,TPlay> {
+public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<TCard>> extends Game<TChar> {
 
 	/**
 	 * 

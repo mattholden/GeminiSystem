@@ -12,7 +12,7 @@ import com.darkenedsky.gemini.service.Service;
 import com.darkenedsky.gemini.service.WinLossRecordManager;
 
 /** The core class from which all Games are derived. */
-public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> extends Service implements MessageProcessor, MessageSerializable {
+public abstract class Game<TChar extends GameCharacter> extends Service implements MessageProcessor, MessageSerializable {
 	
 	/**
 	 * 
@@ -37,7 +37,7 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 	protected int state = ActionList.CREATE_GAME;
 		
 	/** List of the player sessions who are playing this game. */
-	protected Vector<TPlayer> players = new Vector<TPlayer>();
+	protected Vector<Player> players = new Vector<Player>();
 	
 	/** List of the game characters created. */
 	protected Vector<TChar> characters = new Vector<TChar>();
@@ -86,7 +86,7 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 				Message sending = new Message(CHAT, game.getGameID());
 				sending.put("from_playerid", p.getPlayerID());
 				sending.put("message", m.getString("message"));
-				for (TPlayer play : players) { 
+				for (Player play : players) { 
 					play.pushOutgoingMessage(sending);
 				}
 			}
@@ -170,7 +170,7 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 
 		Collections.shuffle(players);
 		
-		for (TPlayer play : players) { 
+		for (Player play : players) { 
 			Constructor<TChar> tcon = tcharClass.getConstructor(Player.class);
 			characters.add(tcon.newInstance(play));
 		}
@@ -209,9 +209,8 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 	public String getName() { return name; }
 	public String toString() { return gameID + " : " + name; }
 	public int getState() { return state; }
-	public Vector<TPlayer> getPlayers() { return players; }
+	public Vector<Player> getPlayers() { return players; }
 	
-	@SuppressWarnings("unchecked")
 	private void addPlayer(Message m, Player p) throws Exception { 
 		if (playersReady.size() >= maxplayers)
 			throw new GameFullException(gameID);
@@ -222,7 +221,7 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 			else if (!pass.equals(password)) throw new InvalidGamePasswordException();
 		}			
 		p.addCurrentGame(getGameID());
-		players.add((TPlayer)p);
+		players.add((Player)p);
 		playersReady.put(p.getPlayerID(), false);
 		clearReadyStatuses();
 		sendToAllPlayers(ADD_PLAYER);
@@ -244,8 +243,8 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 	}
 	
 	
-	public TPlayer getPlayer(long target) { 
-		for (TPlayer c : players) { 
+	public Player getPlayer(long target) { 
+		for (Player c : players) { 
 			if (c.getPlayerID() == target)
 				return c;			
 		}
@@ -290,7 +289,7 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 	public void sendToAllPlayers(int action) { sendToAllPlayers(action, this, "game"); }
 	
 	public void sendToAllPlayers(int action, MessageSerializable object, String objectTag) { 
-		for (TPlayer play : players) { 
+		for (Player play : players) { 
 			Message m = new Message(action, getGameID());
 			m.put(objectTag, object, play);
 			play.pushOutgoingMessage(m);
@@ -365,13 +364,13 @@ public abstract class Game<TChar extends GameCharacter, TPlayer extends Player> 
 		
 		WinLossRecordManager winLossRecords = gameCacheService.getWinLossRecordManager();
 		for (TChar c : result.getWinners())
-			winLossRecords.win(c.getPlayer().getPlayerID());
+			c.getPlayer().setRecord(winLossRecords.win(c.getPlayer().getPlayerID()));
 		for (TChar c : result.getLosers())
-			winLossRecords.lose(c.getPlayer().getPlayerID());
+			c.getPlayer().setRecord(winLossRecords.lose(c.getPlayer().getPlayerID()));
 		for (TChar c : result.getDrawers())
-			winLossRecords.draw(c.getPlayer().getPlayerID());
+			c.getPlayer().setRecord(winLossRecords.draw(c.getPlayer().getPlayerID()));
 		
-		for (TPlayer p : players) { 
+		for (Player p : players) { 
 			p.removeCurrentGame(getGameID());
 		}
 		

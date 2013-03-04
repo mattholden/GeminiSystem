@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jdom2.Element;
 
-public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends Player, TGame extends Game<TChar, TPlay>> extends HttpServlet implements ActionList {
+public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends Player, TGame extends Game<TChar>> extends HttpServlet implements ActionList {
 	
 	/**
 	 * 
@@ -30,7 +30,7 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 	@Override
 	public void destroy() {
 		try { 
-			System.out.println("Shutting down Gemini Servlet...");
+			System.out.println("Shutting down Servlet [" + getClass().getName() + "]...");
 			service.shutdown();
 		}
 		catch (Exception x) { 
@@ -40,14 +40,20 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+		System.out.println(req.getServletPath());
+		
+		// Don't try to do anything before we're ready
+		if (service == null || service.getSettings() == null) return;
+		
 		System.out.println("GET request received.");
 		
-		//if (service.getSettings().getBoolean("allow-get-requests")) {
+		if (service.getSettings().getBoolean("allow-get-requests")) {
 			doPost(req, resp);
-		//}
-		//else { 
-		//	throw new ServletException("HTTP GET requests are not accepted by this server.");
-		//}
+		}
+		else { 
+			throw new ServletException("HTTP GET requests are not accepted by this server.");
+		}
 		
 	}
 	
@@ -55,11 +61,13 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)	throws ServletException, IOException {
 		try {
+			// don't try to do anything before we're ready
+			if (service == null || service.getSettings() == null) return;
 			
 			System.out.println("POST request received");
 			
-			//if (service.getSettings().getBoolean("require-https") && !req.isSecure())
-			//	throw new ServletException("Insecure requests are not accepted by this server.");
+			if (service.getSettings().getBoolean("require-https") && !req.isSecure())
+				throw new ServletException("Insecure requests are not accepted by this server.");
 			
 			String m = req.getParameter("xml");
 			String j = req.getParameter("json");

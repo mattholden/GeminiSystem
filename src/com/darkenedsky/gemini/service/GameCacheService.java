@@ -8,6 +8,8 @@ import com.darkenedsky.gemini.GameCharacter;
 import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.card.CCGDeckService;
+import com.darkenedsky.gemini.card.CCGGame;
 import com.darkenedsky.gemini.exception.InvalidGameException;
 
 /** Service to handle the creation, caching, and polling of games. Stores all active games and replies to 
@@ -17,7 +19,7 @@ import com.darkenedsky.gemini.exception.InvalidGameException;
  *
  * @param <TGame>
  */
-public class GameCacheService<TGame extends Game<? extends GameCharacter, ? extends Player>> extends Service implements GameCacheInterface { 
+public class GameCacheService<TGame extends Game<? extends GameCharacter>> extends Service implements GameCacheInterface { 
 	
 	/** Cache of all the active games by ID. */
 	private ConcurrentHashMap<Long, TGame> games = new ConcurrentHashMap<Long, TGame>();
@@ -33,6 +35,8 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter, ? exte
 	
 	/** Library of all the game object definitions */
 	private Library library;
+	
+	private CCGDeckService<?> deckService;
 	
 	/** These numbers have to be unique to a server, but only so long as it's running, because without
 	 * game-level storage, they'll die if the server does anyway. So just increment a counter. It's ghetto but it
@@ -100,6 +104,14 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter, ? exte
 		Constructor<TGame> con = gameClass.getConstructor(long.class, Message.class, Player.class);
 		TGame game = (TGame)con.newInstance(getNextGameID(), e, jdbc, player);
 		game.setService(this);
+		
+		// if a deck service has been set up, and you're a CCG game, add the deck service to the game.
+		// This is a little bit sloppy but saves us having to extend both GeminiService and GameCacheService
+		// for every game project.
+		if (deckService != null && game instanceof CCGGame<?,?>) { 
+			((CCGGame<?,?>)game).setDeckService(deckService);
+		}
+		
 		games.put(game.getGameID(), game);
 		return game;
 	}
@@ -160,5 +172,9 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter, ? exte
 	public Library getLibrary() { 
 		return library;
 	}
-	
+
+	public void setDeckService(CCGDeckService<?> svc) { 
+		this.deckService = svc;
+	}
+		
 }

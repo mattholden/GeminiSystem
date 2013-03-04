@@ -26,15 +26,15 @@ public abstract class Handler implements MessageProcessor {
 		ON_TEAM_TURN = 3,
 		NOT_TEAM_TURN = 4;
 	
-	protected Game<? extends GameCharacter, ? extends Player> game;
+	protected Game<? extends GameCharacter> game;
 	
 	public Handler() { /* Deliberately empty */ }
 	
-	public Handler(Game<? extends GameCharacter, ? extends Player> gm) { 
+	public Handler(Game<? extends GameCharacter> gm) { 
 		this(gm, ON_ANY_TURN);
 	}
 	
-	public Handler(Game<? extends GameCharacter, ? extends Player> gm, int theTurnState, Integer... phases) { 
+	public Handler(Game<? extends GameCharacter> gm, int theTurnState, Integer... phases) { 
 		game = gm;
 		turnState = theTurnState;
 		
@@ -52,7 +52,7 @@ public abstract class Handler implements MessageProcessor {
 		requiresSession = req;
 	}
 	
-	public void setGame(Game<? extends GameCharacter, ? extends Player> g) { 
+	public void setGame(Game<? extends GameCharacter> g) { 
 		game = g;
 	}
 	
@@ -80,7 +80,7 @@ public abstract class Handler implements MessageProcessor {
 			}
 		}
 		
-		if (game != null && game instanceof Game<?,?>) { 
+		if (game != null && game instanceof Game<?>) { 
 	
 			// Make sure you're even in the game
 			if (requiresInGame != null) { 
@@ -100,7 +100,7 @@ public abstract class Handler implements MessageProcessor {
 			}
 			
 			// check if you're the correct player
-			boolean isCurrent = (((Game<?,?>)game).getCurrentPlayer() == p.getPlayerID());	
+			boolean isCurrent = (((Game<?>)game).getCurrentPlayer() == p.getPlayerID());	
 			if (isCurrent && turnState == NOT_YOUR_TURN) { 
 				throw new NotOnThisTurnException(true);
 			}

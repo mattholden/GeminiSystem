@@ -1,8 +1,8 @@
 package com.darkenedsky.gemini.card;
-import com.darkenedsky.gemini.AdvancedGameObject;
+import com.darkenedsky.gemini.GameObjectWithStats;
 
 
-public class Card extends AdvancedGameObject {
+public class Card extends GameObjectWithStats {
 
 	/**
 	 * 
