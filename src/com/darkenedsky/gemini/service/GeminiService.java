@@ -2,6 +2,9 @@ package com.darkenedsky.gemini.service;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Vector;
+
+import org.apache.log4j.Logger;
+
 import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.GameCharacter;
@@ -21,6 +24,9 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	 * 
 	 */
 	private static final long serialVersionUID = 1133934743984044518L;
+	
+	/** Logger instance */
+	private static Logger LOG = Logger.getLogger(GeminiService.class);
 	
 	/** The JDBC connection to the database. */
 	private JDBCConnection jdbc;
@@ -55,17 +61,19 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 				
 		playerClass = thePlayerClass;	
 		settings = Message.parseXMLFile(settingsFile);	
-		System.out.println("XML : " + settings.getString("loaded_from_file"));
-		System.out.println("Starting up servlet for " + settings.getString("servicename"));
+		LOG.debug("XML : " + settings.getString("loaded_from_file"));
+		LOG.debug("Starting up servlet for " + settings.getString("servicename"));
 		System.out.println(settings.getString("database_password"));
 		jdbc = new JDBCConnection(settings.getString("database_user"), settings.getString("database_password"), settings.getString("database_path"), settings.getString("database_driver"));		
 		gameCacheService = new GameCacheService<TGame>(theGameClass, settings, jdbc, lib);
 		addService(gameCacheService);
-	
+		addService(new AnalyticsService(jdbc));
+		
 		// deliberately don't add the Session Manager as a service using addService(); its actions behave 
 		// differently because the user might not be logged in when interacting with them.
 		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings, gameCacheService.getWinLossRecordManager());		
 		
+		LOG.debug("Gemini Service for game " + settings.getString("servicename") + " initialized OK.");		
 	}
 
 		
@@ -145,32 +153,40 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 			else { 
 				switch (action) { 
 				case HELLO_WORLD:
+					LOG.debug("GeminiService: Fired Action HELLO_WORLD");
 					Message m = new Message(HELLO_WORLD);
 					m.put("hello", "Hello, world!");
 					replies.add(m);
 					return replies;
 				case LOGIN:
+					LOG.debug("GeminiService: Fired Action LOGIN");
 					replies.add(sessions.login(e));
 					return replies;
 				case LOGOUT:
+					LOG.debug("GeminiService: Fired Action LOGOUT");
 					sessions.logout(token);
 					replies.add(new Message(LOGOUT));
 					break;
 				case VERIFY_EMAIL_REDEEM:
+					LOG.debug("GeminiService: Fired Action VERIFY_EMAIL_REDEEM");
 					replies.add(sessions.verifyEmailRedeem(e));
 					break;
 				case VERIFY_EMAIL_REQUEST:
+					LOG.debug("GeminiService: Fired Action VERIFY_EMAIL_REQUEST");
 					sessions.verifyEmailRequest(e);
 					replies.add(new Message(VERIFY_EMAIL_REQUEST));
 					break;
 				case FORGOTPASS_REDEEM:
+					LOG.debug("GeminiService: Fired Action FORGOTPASS_REDEEM");
 					replies.add(sessions.forgotPassRedeem(e));
 					break;
 				case FORGOTPASS_REQUEST:
+					LOG.debug("GeminiService: Fired Action FORGOTPASS_REQUEST");
 					sessions.forgotPassRequest(e);
 					replies.add(new Message(FORGOTPASS_REQUEST));
 					break;
 				case CREATE_ACCOUNT:
+					LOG.debug("GeminiService: Fired Action CREATE_ACCOUNT");
 					replies.add(sessions.createAccount(e));
 					break;
 				
@@ -193,9 +209,11 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 		}
 		catch (GeminiException re) {
 			re.printStackTrace();
+			LOG.debug(re);
 			replies.add(re.serialize(player));
 		}
 		catch (Throwable x) { 
+			LOG.error(x);
 			x.printStackTrace();
 			replies.add(new JavaException(x).serialize(player));
 		}

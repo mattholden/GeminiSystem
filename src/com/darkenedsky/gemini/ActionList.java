@@ -34,7 +34,8 @@ public interface ActionList {
 		POLL = 200,
 		VERIFY_EMAIL_REQUEST = 201,
 		VERIFY_EMAIL_REDEEM = 202,
-		LOGOUT = 203;
+		LOGOUT = 203,
+		GET_ANALYTICS = 204;
 	
 	// chat system and guild commands
 	public static final int

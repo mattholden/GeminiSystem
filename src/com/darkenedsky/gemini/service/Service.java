@@ -1,6 +1,8 @@
 package com.darkenedsky.gemini.service;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
+
 import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.MessageProcessor;
@@ -18,6 +20,8 @@ public class Service implements MessageProcessor {
 	/** List of the action Handlers registered on this game. Just like old times' sake! */
 	protected transient ConcurrentHashMap<Integer, Handler> handlers = new ConcurrentHashMap<Integer, Handler>();
 	
+	/** Logger instance */
+	private static final Logger LOG = Logger.getLogger(Service.class);
 
 	/** Check to see if this plugin has the capacity to handle a particular action
 	 * 
@@ -40,6 +44,9 @@ public class Service implements MessageProcessor {
 		if (h == null) { 
 			throw new InvalidActionException(action);			
 		}
+		
+		LOG.debug("Service: Firing action " + action);
+
 		// make sure we are on the right turn, phase, etc.
 		h.validate(e, p);
 		
@@ -48,7 +55,8 @@ public class Service implements MessageProcessor {
 	}
 	
 	/** Override to perform any initialization on this service. */
-	public void init() {}
+	public void init() {		
+	}
 	
 	/** Override to perform any shutdown code on this service */
 	public void shutdown() {}

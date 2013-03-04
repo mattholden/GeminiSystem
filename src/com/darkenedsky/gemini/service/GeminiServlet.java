@@ -13,6 +13,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
 import org.jdom2.Element;
 
 public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends Player, TGame extends Game<TChar>> extends HttpServlet implements ActionList {
@@ -24,13 +26,16 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 	
 	protected GeminiService<TChar, TPlay, TGame> service;
 	
+	/** Logger instance */
+	private static Logger LOG = Logger.getLogger(GeminiServlet.class);
+	
 	@Override
 	public abstract void init();
 	
 	@Override
 	public void destroy() {
 		try { 
-			System.out.println("Shutting down Servlet [" + getClass().getName() + "]...");
+			LOG.debug("Shutting down Servlet [" + getClass().getName() + "]...");
 			service.shutdown();
 		}
 		catch (Exception x) { 
@@ -41,12 +46,12 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
-		System.out.println(req.getServletPath());
+		LOG.debug("Servlet Path: " + req.getServletPath());
 		
 		// Don't try to do anything before we're ready
 		if (service == null || service.getSettings() == null) return;
 		
-		System.out.println("GET request received.");
+		LOG.debug("GET request received.");
 		
 		if (service.getSettings().getBoolean("allow-get-requests")) {
 			doPost(req, resp);
@@ -64,7 +69,7 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 			// don't try to do anything before we're ready
 			if (service == null || service.getSettings() == null) return;
 			
-			System.out.println("POST request received");
+			LOG.debug("POST request received");
 			
 			if (service.getSettings().getBoolean("require-https") && !req.isSecure())
 				throw new ServletException("Insecure requests are not accepted by this server.");
@@ -72,9 +77,9 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 			String m = req.getParameter("xml");
 			String j = req.getParameter("json");
 			if (j != null) { 
-				System.out.println("===================================================");
-				System.out.println("RECEIVED JSON:");
-				System.out.println(j);
+				LOG.debug("===================================================");
+				LOG.debug("RECEIVED JSON:");
+				LOG.debug(j);
 				Message msg = new Message(j);
 				msg.put(Message.SESSION_IPADDRESS, req.getRemoteAddr());
 				Vector<Message> replies = (service.processMessage(msg));
@@ -88,17 +93,17 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 				sb.append("\n]");
 				
 				String retstr = sb.toString();
-				System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nRESPONDED:");			
-				System.out.println(retstr);
+				LOG.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nRESPONDED:");			
+				LOG.debug(retstr);
 				resp.setContentType("text/json");
 				resp.getWriter().println(retstr);
 			}
 			
 			else if (m != null) { 
 			
-				System.out.println("===================================================");
-				System.out.println("RECEIVED XML:");
-				System.out.println(m);
+				LOG.debug("===================================================");
+				LOG.debug("RECEIVED XML:");
+				LOG.debug(m);
 				Element e = XMLTools.stringToXML(m);
 				e.addContent(XMLTools.xml(Message.SESSION_IPADDRESS, req.getRemoteAddr()));
 				Message msg = new Message(e);				
@@ -108,8 +113,8 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 					reply.addContent(mx.toXML("message"));
 				}
 				String retstr = XMLTools.xmlToString(reply);
-				System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nRESPONDED:");			
-				System.out.println(retstr);
+				LOG.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nRESPONDED:");			
+				LOG.debug(retstr);
 				resp.setContentType("text/xml");
 				resp.getWriter().println(retstr);
 			}

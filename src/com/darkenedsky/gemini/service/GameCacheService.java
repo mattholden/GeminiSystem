@@ -112,6 +112,7 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter>> exten
 			((CCGGame<?,?>)game).setDeckService(deckService);
 		}
 		
+		game.init();
 		games.put(game.getGameID(), game);
 		return game;
 	}

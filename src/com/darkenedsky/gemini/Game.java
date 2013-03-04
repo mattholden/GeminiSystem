@@ -376,6 +376,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		
 		sendToAllPlayers(ActionList.GAME_END, result, "result");			
 		gameCacheService.uncacheGame(gameID);
+		this.shutdown();
 		return result;
 	}
 
