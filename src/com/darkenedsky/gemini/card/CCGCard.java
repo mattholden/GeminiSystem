@@ -6,50 +6,22 @@ import com.darkenedsky.gemini.stats.Statistic;
 
 public abstract class CCGCard extends Card {
 
-	private Long owner;
-	private Long controller;
 	private int maxInDeck = 4;
-	private boolean tapped = false;
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 5790615972027062731L;
 
-	public CCGCard(int defID, String englishName) { 
-		this(defID, null, null, englishName);
+	public CCGCard(int defID, int type, String englishName) { 
+		this(defID, type, null, null, englishName);
 	}
 	
-	public CCGCard(int defID, Long objID, Long owner, String englishName) {
-		super(defID, objID, englishName);		
-		this.owner = owner;
-		controller = owner;
+	public CCGCard(int defID, int type, Long objID, Long owner, String englishName) {
+		super(defID, type,  objID, owner, englishName);			
 	}
 
-	public boolean isTapped() { 
-		return tapped;
-	}
-
-	public void onTapped() throws Exception { } 
-	public void onUntapped() throws Exception { } 
 	
-	public void setTapped(boolean tap) throws Exception { 
-		tapped = tap;		
-	}
-	
-	public Long getController() {
-		return controller;
-	}
-
-
-	public void setController(Long controller) {
-		this.controller = controller;
-	}
-
-
-	public Long getOwner() {
-		return owner;
-	}
 	
 	@Override
 	/** Serialize the object. 
@@ -62,11 +34,6 @@ public abstract class CCGCard extends Card {
 		
 		if (owner == null && controller == null) { 
 			m.put("maxindeck", maxInDeck);
-		}
-		else { 
-			m.put("controller", controller);
-			m.put("owner", owner);
-			m.put("tapped", tapped);
 		}
 		
 		// The base AdvancedGameObject creates the list and stores all non-secret stats/tags; 

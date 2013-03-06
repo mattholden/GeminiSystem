@@ -16,7 +16,7 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	private Player player;
 	protected String name = "New Character";
 	protected ConcurrentHashMap<String, Statistic> statistics = new ConcurrentHashMap<String, Statistic>(20);
-	
+	private boolean eliminated = false;
 	
 	private Game<? extends GameCharacter> game;
 	
@@ -33,6 +33,14 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 		this.statistics.put(Gender.GENDER_FIELD, new Statistic("Gender", p.getGender()));				
 	}
 
+	public boolean isEliminated() { 
+		return eliminated;
+	}
+	
+	public void setEliminated(boolean el) { 
+		eliminated = el;
+	}
+	
 	@Override
 	public int getGender() { 
 		return getStat(Gender.GENDER_FIELD).getValueWithBonuses();
@@ -70,7 +78,6 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	}
 
 	
-
 	
 	public String getName() {
 		return name;
@@ -88,8 +95,17 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 		this.player = player;
 	}
 
+	public boolean isFriendlyTo(long playerid) { 
+		if (playerid == this.getPlayer().getPlayerID())
+			return true;
+	
+		// todo: support teams, but for now...
+		return false;
+	}
+	
 	public void onTurnEnd() throws Exception { } 	
 	public void onTurnStart() throws Exception { } 
+	public void onGameStart() throws Exception { } 
 	
 	public boolean isCurrentPlayer() { 
 		return game.isCurrentPlayer(this.getPlayer().getPlayerID());
@@ -115,7 +131,7 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 		Message m = new Message();
 		m.put("name", name);
 		m.put("player", player, p);
-	
+		m.put("eliminated", eliminated);
 		m.addList("stats");
 		for (Map.Entry<String, Statistic> stat : statistics.entrySet()) {
 	

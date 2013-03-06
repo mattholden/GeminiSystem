@@ -463,7 +463,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 			}
 			
 			// spawn the cards
-			CardDeck<TCard> deck = new CardDeck<TCard>();			
+			CardDeck<TCard> deck = new CardDeck<TCard>(g.getNextObjectID(), p.getPlayerID(), CardDeck.DECK);			
 			for (Map.Entry<Integer, Integer> card : cardCount.entrySet()) { 
 				@SuppressWarnings("unchecked")
 				Class<TCard> defClass = (Class<TCard>) lib.get(card.getKey()).getClass();

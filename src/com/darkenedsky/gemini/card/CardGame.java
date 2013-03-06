@@ -17,4 +17,7 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 	}
 	
 
+	public abstract CardContainer<TCard> findCard(long cardID) throws Exception;
+	public abstract TCard getCard(long cardID) throws Exception;
+	
 }

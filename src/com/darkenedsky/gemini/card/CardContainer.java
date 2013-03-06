@@ -4,12 +4,12 @@ import java.util.Vector;
 
 public interface CardContainer<TCard extends Card> {
 
-	public void addCard(TCard card);
-	public void removeCard(TCard card);
-	public void removeCard(long cardid);
+	public void add(TCard card) throws Exception;
+	public void remove(TCard card) throws Exception;
+	public void remove(long cardid) throws Exception;
 	public TCard getCard(long cardid);
 	public Vector<TCard> getCards();
-	public int getDefinitionID();
+	
 	public Long getObjectID();
 
 	public void onCardAdded(TCard card) throws Exception;
@@ -17,4 +17,7 @@ public interface CardContainer<TCard extends Card> {
 	public void validateAddCard(TCard card) throws Exception;
 	public void validateRemoveCard(TCard card) throws Exception;
 
+	public int getContainerType() throws Exception;
+	public boolean isContainerInPlay() throws Exception;
+	
 }

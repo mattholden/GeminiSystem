@@ -80,7 +80,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		// the creator of the game probably wants to play in it
 		addPlayer(e, p);
 	
-		handlers.put(CHAT, new Handler(this) { 
+		Handler chat = new Handler(this) { 
 			@Override
 			public void processMessage(Message m, Player p) throws Exception  { 
 				Message sending = new Message(CHAT, game.getGameID());
@@ -90,9 +90,12 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 					play.pushOutgoingMessage(sending);
 				}
 			}
-		});
+		};
+		chat.getGeneralValidator().setRequiresInGame(null);
+		chat.getGeneralValidator().setRequireEliminated(null);
+		handlers.put(CHAT, chat);
 		
-		handlers.put(WHISPER, new Handler(this) { 
+		Handler whisper = new Handler(this) { 
 			@Override
 			public void processMessage(Message m, Player p)  throws Exception { 
 				long pid = m.getLong(Message.TARGET_PLAYER);
@@ -101,21 +104,25 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 				sending.put("message", m.getString("message"));				
 				game.getPlayer(pid).pushOutgoingMessage(sending);			
 			}
-		});
+		};
+		whisper.getGeneralValidator().setRequiresInGame(null);
+		whisper.getGeneralValidator().setRequireEliminated(null);
+		handlers.put(WHISPER,whisper);
 		
 		// Add a player to the game in lobby state
-		Handler addPlay = new Handler(this, Handler.ON_ANY_TURN, CREATE_GAME) { 
+		Handler addPlay = new Handler(this) { 
 			@Override
 			public void processMessage(Message m, Player p) throws Exception { 
 				addPlayer(m,p);
 			}
 		};
 		// add player is the only action you can do when you aren't already a player
-		addPlay.setRequiresInGame(Handler.REQUIRES_NO);
+		addPlay.getGeneralValidator().setPhases(CREATE_GAME);
+		addPlay.getGeneralValidator().setRequiresInGame(Handler.REQUIRES_NO);
 		handlers.put(ADD_PLAYER, addPlay);
 		
 		// Drop a player from the game in lobby state
-		handlers.put(DROP_PLAYER, new Handler(this, Handler.ON_ANY_TURN, CREATE_GAME) { 
+		Handler dropPlay = new Handler(this) { 
 			@Override
 			public void processMessage(Message m, Player p)  throws Exception { 
 
@@ -125,19 +132,23 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 				playersReady.remove(p.getPlayerID());
 				p.removeCurrentGame(getGameID());
 				sendToAllPlayers(DROP_PLAYER);					
-}
-		});
+			}
+		};
+		dropPlay.getGeneralValidator().setPhases(CREATE_GAME);
+		handlers.put(DROP_PLAYER, dropPlay);
 		
 		// Designate a player as ready to start in lobby state
-		handlers.put(SET_READY, new Handler(this, Handler.ON_ANY_TURN, CREATE_GAME) { 
+		Handler setReady = new Handler(this) { 
 			@Override
 			public void processMessage(Message m, Player p)  throws Exception { 
 				setReady(m, p);
 			}
-		});
+		};
+		setReady.getGeneralValidator().setPhases(CREATE_GAME);
+		handlers.put(SET_READY, setReady);
 		
 		// start the game.
-		handlers.put(START_GAME, new Handler(this, Handler.ON_ANY_TURN, CREATE_GAME) { 
+		Handler start = new Handler(this) { 
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				
@@ -146,8 +157,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 				}
 				startGame();
 			}
-		});
-		
+		};
+		start.getGeneralValidator().setPhases(CREATE_GAME);
+		handlers.put(START_GAME, start);
 	}
 
 	/** Checks if a game is full. Used so we don't show full but not-yet-started games in GET_OPEN_GAMES. 
@@ -172,10 +184,12 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		
 		for (Player play : players) { 
 			Constructor<TChar> tcon = tcharClass.getConstructor(Player.class);
-			characters.add(tcon.newInstance(play));
+			TChar chr = tcon.newInstance(play);
+			characters.add(chr);
+			chr.setGame(this);
+			chr.onGameStart();
 		}
-	
-		onGameStart();
+			
 		startNewTurn();
 	}
 	
