@@ -127,7 +127,7 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	public final void addTag(String field, String name) { 
 		statistics.put(field, new Statistic(name, 0, Statistic.ALWAYS_HIDDEN));
 	}
-	
+		
 	@Override
 	public Message serialize(Player p) { 
 		Message m = new Message();

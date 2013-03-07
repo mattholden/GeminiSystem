@@ -20,9 +20,9 @@ public class CardHandlerValidator<TCard extends Card> implements HandlerValidato
 	private Integer[] containerTypes; 
 	private CardGame<TCard,?> game;
 	
-	public static final int IN_PLAY = 0, HAND = CardDeck.HAND, DISCARD = CardDeck.DISCARD, DECK = CardDeck.DECK;
+	public static final int HAND = CardDeck.HAND, DISCARD = CardDeck.DISCARD, DECK = CardDeck.DECK;
 	
-	public static final int CONTROLLER_YOU = 0, CONTROLLER_HOSTILE = 1, CONTROLLER_FRIENDLY = 2;
+	public static final Integer CONTROLLER_YOU = 0, CONTROLLER_HOSTILE = 1, CONTROLLER_FRIENDLY = 2, CONTROLLER_ANY = null;
 	
 	public static final String CARDID = "cardid", TARGET_CARDID = "targetcardid";
 	

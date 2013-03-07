@@ -18,7 +18,7 @@ public class CCGCharacter<TCard extends CCGCard> extends CardCharacter<TCard> {
 		super(p);	
 	}
 
-	void setDeck(CardDeck<TCard> dek, long dekid) { 
+	public void setDeck(CardDeck<TCard> dek, long dekid) throws Exception { 
 		deckID = dekid;
 		deck = dek;
 	}
@@ -29,6 +29,10 @@ public class CCGCharacter<TCard extends CCGCard> extends CardCharacter<TCard> {
 
 	public long getDeckID() {
 		return deckID;
+	}
+	
+	public void shuffleDeck() throws Exception { 
+		getDeck().shuffle();
 	}
 	
 	/** Draw the top 'num' cards, removing it from the deck.

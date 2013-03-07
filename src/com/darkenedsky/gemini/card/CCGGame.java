@@ -41,8 +41,8 @@ public abstract class CCGGame<TCard extends CCGCard, TChar extends CCGCharacter<
 	@Override
 	protected void onGameStart() throws Exception {
 		super.onGameStart();
-	
-		for (TChar chr : characters) {
+		
+			for (TChar chr : characters) {
 			long did = deckIDs.get(chr.getPlayer().getPlayerID());
 			chr.setDeck(deckService.spawnDeck(this, chr.getPlayer(), did), did);
 		}

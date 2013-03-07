@@ -183,6 +183,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			@Override
 			public void processMessage(Message m, Player p) throws Exception { 
 				getCharacter(p.getPlayerID()).setEliminated(true);
+				startNewTurn();
 			}
 		};
 		forfeit.getGeneralValidator().setTurnState(HandlerValidator.ON_YOUR_TURN);
