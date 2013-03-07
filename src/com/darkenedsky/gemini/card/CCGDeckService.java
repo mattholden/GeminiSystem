@@ -469,7 +469,9 @@ public class CCGDeckService<TCard extends Card> extends Service {
 				Class<TCard> defClass = (Class<TCard>) lib.get(card.getKey()).getClass();
 				Constructor<TCard> defCon = defClass.getConstructor(Long.class, Long.class);
 				for (int i = 0; i < card.getValue(); i++) {
-					deck.add(defCon.newInstance(g.getNextObjectID(), p.getPlayerID()));
+					TCard tcard = (defCon.newInstance(g.getNextObjectID(), p.getPlayerID()));
+					tcard.setGame(g);
+					deck.add(tcard);
 				}
 			}
 			

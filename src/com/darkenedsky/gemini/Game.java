@@ -1,5 +1,6 @@
 package com.darkenedsky.gemini;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
@@ -119,6 +120,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		// add player is the only action you can do when you aren't already a player
 		addPlay.getGeneralValidator().setPhases(CREATE_GAME);
 		addPlay.getGeneralValidator().setRequiresInGame(Handler.REQUIRES_NO);
+		addPlay.getGeneralValidator().setRequireEliminated(null);		
 		handlers.put(ADD_PLAYER, addPlay);
 		
 		// Drop a player from the game in lobby state
@@ -135,6 +137,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			}
 		};
 		dropPlay.getGeneralValidator().setPhases(CREATE_GAME);
+		dropPlay.getGeneralValidator().setRequireEliminated(null);		
 		handlers.put(DROP_PLAYER, dropPlay);
 		
 		// Designate a player as ready to start in lobby state
@@ -145,6 +148,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			}
 		};
 		setReady.getGeneralValidator().setPhases(CREATE_GAME);
+		setReady.getGeneralValidator().setRequireEliminated(null);		
 		handlers.put(SET_READY, setReady);
 		
 		// start the game.
@@ -156,10 +160,33 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 					throw new NotEveryoneIsReadyException(game.getGameID());
 				}
 				startGame();
+				startNewTurn();
 			}
 		};
+		start.getGeneralValidator().setRequireEliminated(null);		
 		start.getGeneralValidator().setPhases(CREATE_GAME);
 		handlers.put(START_GAME, start);
+		
+		Handler turnEnd = new Handler(this) { 
+			
+			@Override
+			public void processMessage(Message m, Player p) throws Exception { 
+				startNewTurn();
+			}
+		};
+		turnEnd.getGeneralValidator().setPhases(TURN_START, MAIN_PHASE);
+		turnEnd.getGeneralValidator().setTurnState(HandlerValidator.ON_YOUR_TURN);
+		handlers.put(TURN_END, turnEnd);
+		
+		Handler forfeit = new Handler(this) { 
+			
+			@Override
+			public void processMessage(Message m, Player p) throws Exception { 
+				getCharacter(p.getPlayerID()).setEliminated(true);
+			}
+		};
+		forfeit.getGeneralValidator().setTurnState(HandlerValidator.ON_YOUR_TURN);
+		handlers.put(FORFEIT, forfeit);
 	}
 
 	/** Checks if a game is full. Used so we don't show full but not-yet-started games in GET_OPEN_GAMES. 
@@ -178,7 +205,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	protected void onTurnStart() throws Exception { } 
 	protected void onTurnEnd() throws Exception { } 
 	
-	private void startGame() throws Exception { 
+	protected void startGame() throws Exception { 
 
 		Collections.shuffle(players);
 		
@@ -189,8 +216,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			chr.setGame(this);
 			chr.onGameStart();
 		}
-			
-		startNewTurn();
+					
 	}
 	
 	
@@ -331,14 +357,17 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	/** Initialize a new turn. */
 	protected void startNewTurn() throws Exception { 
 		  		
-		onTurnEnd();
-		for (TChar ch : characters) { 
-			ch.onTurnEnd();
-		}
+		if (turnCount > 0) { 
+			onTurnEnd();
+			for (TChar ch : characters) { 
+				ch.onTurnEnd();
+			}
+			characters.get(currentPlayerIndex).onYourTurnEnd();
 		
-		// somebody won, let's end this.
-		if (checkForWin() == null) { 
-			return;
+			// somebody won, let's end this.
+			if (checkForWin() == null) { 
+				return;
+			}
 		}
 		
 		turnCount++;
@@ -347,13 +376,18 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			currentPlayerIndex = 0;
 		state = TURN_START;
 	
-		onTurnStart();		
-		for (TChar ch : characters) { 
-			ch.onTurnStart();
+		// skip the turn of someone who is eliminated
+		if (getCharacter(getCurrentPlayer()).isEliminated()) { 
+			startNewTurn();
 		}
-		
-		sendToAllPlayers(TURN_START);
-		
+		else { 
+			onTurnStart();		
+			for (TChar ch : characters) { 
+				ch.onTurnStart();
+			}
+			characters.get(currentPlayerIndex).onYourTurnStart();		
+			sendToAllPlayers(TURN_START);
+		}		
 	}
 
 
@@ -361,7 +395,40 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	 * Check to see if anyone has won the game. Do this at the start of each phase; instants can happen anytime.
 	 * @return a GameResult of who won/lost if someone did, or null if the game is not yet over. 
 	 */
-	protected abstract GameResult<TChar> getGameResult();
+	protected GameResult<TChar> getGameResult() {
+		
+		ArrayList<TChar> alive = new ArrayList<TChar>();
+		ArrayList<TChar> dead = new ArrayList<TChar>();
+		for (TChar chr : this.getCharacters()) { 
+			
+			if (chr.isEliminated()) {
+				dead.add(chr);
+			}
+			else 
+				alive.add(chr);
+		}
+		if (alive.size() > 1)
+			return null;
+		
+		boolean draw = alive.isEmpty();
+		GameResult<TChar> gr = new GameResult<TChar>(this.getGameID());
+		
+		if (draw) { 
+			for (TChar c : getCharacters()) { 
+				gr.addDrawer(c);
+			}			
+		}
+		else { 
+			for (TChar c : alive) { 
+				gr.addWinner(c);
+			}
+			for (TChar c : dead) { 
+				gr.addLoser(c);
+			}
+		}
+		return gr;
+		
+	}
 	
 	/** Checks to see if we have a winner or a draw. If we do, ends the game. 
 	 *   

@@ -27,7 +27,9 @@ public interface ActionList {
 		GET_OPEN_GAMES = 105,
 		GAME_END = 106,
 		TURN_START = 107,
-		TURN_END = 108;
+		TURN_END = 108,
+		MAIN_PHASE = 109,
+		FORFEIT = 110;
 	
 	// POST-LOGIN USER STUFF
 	public static final int 

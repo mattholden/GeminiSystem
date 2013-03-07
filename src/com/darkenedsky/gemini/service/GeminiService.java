@@ -15,6 +15,7 @@ import com.darkenedsky.gemini.card.CCGDeckService;
 import com.darkenedsky.gemini.exception.GeminiException;
 import com.darkenedsky.gemini.exception.InvalidActionException;
 import com.darkenedsky.gemini.exception.JavaException;
+import com.darkenedsky.gemini.guild.GuildService;
 
 /** The service that processes incoming messages, spawns Games, handles logins and other Sessions, etc.
  *  Extend this class for each game "service" (FKA projects) that you wish to run. */
@@ -51,23 +52,20 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	 * @param theGameClass The class object for the specific Game subclass. Should match TGame.
 	 * @param thePlayerClass  The class object for the specific Player subclass. Should match TPlay.
 	 * @param lib the library of static game object definitions. Should be defined in the Servlet.
-	 * @param settingsFile The filename of the Settings XML file to read.
+	 * @param settingsFile The Settings XML to read.
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public GeminiService(Class<TGame> theGameClass, Class<TPlay> thePlayerClass, Library lib, String settingsFile) throws SQLException, ClassNotFoundException, IOException, Exception { 
+	public GeminiService(Class<TGame> theGameClass, Class<TPlay> thePlayerClass, Library lib, Message settings) throws SQLException, ClassNotFoundException, IOException, Exception { 
 				
 		playerClass = thePlayerClass;	
-		settings = Message.parseXMLFile(settingsFile);	
-		LOG.debug("XML : " + settings.getString("loaded_from_file"));
-		LOG.debug("Starting up servlet for " + settings.getString("servicename"));
-		System.out.println(settings.getString("database_password"));
 		jdbc = new JDBCConnection(settings.getString("database_user"), settings.getString("database_password"), settings.getString("database_path"), settings.getString("database_driver"));		
 		gameCacheService = new GameCacheService<TGame>(theGameClass, settings, jdbc, lib);
 		addService(gameCacheService);
 		addService(new AnalyticsService(jdbc));
+		addService(new GuildService(jdbc));
 		
 		// deliberately don't add the Session Manager as a service using addService(); its actions behave 
 		// differently because the user might not be logged in when interacting with them.

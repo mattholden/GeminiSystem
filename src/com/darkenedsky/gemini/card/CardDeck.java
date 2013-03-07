@@ -65,40 +65,6 @@ public class CardDeck<TCard extends Card> implements CardContainer<TCard> {
 		throw new InvalidObjectException(id);
 	}
 	
-	/** Draw the top 'num' cards, removing it from the deck.
-	 *  NOTE: Will NOT throw an exception if you don't have enough cards;
-	 *  you'll need to check and make sure that the returned list matches the expected size
-	 *  if this matters (for things like losing the game if you run out of cards).
-	 *  
-	 *  @param num Number of cards to draw from the top of the deck. 
-	 *  @return the top 'num' cards.
-	 */
-	public Vector<TCard> draw(int num) throws Exception { 
-		
-		int todraw = num;
-		if (cards.size() < num) { 
-			todraw = cards.size();
-		}
-		
-		Vector<TCard> drawn = new Vector<TCard>();
-		
-		// Avoid ConcurrentModification - add the cards, then remove them
-		for (int i = 0; i < todraw; i++) { 
-			drawn.add(cards.get(i));
-		}
-		
-		// Now remove them
-		for (TCard draw : drawn) { 
-			cards.remove(draw);
-		}
-		
-		// Listener. Do this after removal because the listener might need to check the size of the hand, etc.
-		for (TCard draw : drawn) { 
-			draw.onDrawn();
-		}
-		return drawn;
-	}
-
 
 	@Override
 	public Vector<TCard> getCards() {

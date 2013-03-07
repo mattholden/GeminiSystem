@@ -38,6 +38,14 @@ public class Card extends GameObjectWithStats {
 
 	public void onDrawn() throws Exception { /* Deliberately blank */}
 	public void onDiscarded() throws Exception { /* Deliberately blank */ }
+	public void onTurnStart() throws Exception { /* blank */ } 
+	public void onTurnEnd() throws Exception { /* blank */ } 
+	public void onControllerTurnStart() throws Exception { /* blank */ } 
+	public void onControllerTurnEnd() throws Exception { /* blank */ } 
+	public void validateTap(Card tap) throws Exception { /* blank */ }
+	public void observeTap(Card tap) throws Exception { /* blank */ }
+	public void validateUntap(Card tap) throws Exception { /* blank */ }
+	public void observeUntap(Card tap) throws Exception { /* blank */ }
 	
 	public int getType() { 
 		return cardType;
@@ -50,8 +58,23 @@ public class Card extends GameObjectWithStats {
 	public void onTapped() throws Exception { } 
 	public void onUntapped() throws Exception { } 
 	
+	@SuppressWarnings("unchecked")
 	public void setTapped(boolean tap) throws Exception { 
-		tapped = tap;		
+		
+		if (tap == this.tapped) return;		
+		
+		if (tap) { 
+				((CardGame<Card,?>)game).validateTap(this);		
+				tapped = tap;		
+				onTapped();
+				((CardGame<Card,?>)game).observeTap(this);
+		}
+		else { 
+				((CardGame<Card,?>)game).validateUntap(this);		
+				tapped = tap;		
+				onUntapped();
+				((CardGame<Card,?>)game).observeUntap(this);
+		}
 	}
 	
 	public Long getController() {
@@ -67,6 +90,12 @@ public class Card extends GameObjectWithStats {
 	public Long getOwner() {
 		return owner;
 	}
+	
+	protected CardGame<? extends Card,?> game;
+	
+	public CardGame<? extends Card,?> getGame() { return game; } 
+	public void setGame(CardGame<? extends Card,?> g) { game = g; } 
+	
 	
 	@Override
 	public Message serialize(Player p) { 

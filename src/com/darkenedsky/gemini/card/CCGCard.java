@@ -57,4 +57,6 @@ public abstract class CCGCard extends Card {
 		return maxInDeck;
 	}
 	
+	public void observeDraw(CCGCard drawn, Player p) throws Exception { } 
+	
 }

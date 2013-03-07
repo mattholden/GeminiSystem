@@ -10,7 +10,6 @@ public class ActionNotAllowedException extends GeminiException {
 
 	public ActionNotAllowedException(boolean requiredLoggedIn) {
 		super(ACTION_NOT_ALLOWED, "Action is not allowed when you are " + ((requiredLoggedIn) ? "not " : "") + "logged in.");
-		// TODO Auto-generated constructor stub
 	}
 
 	

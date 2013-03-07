@@ -106,6 +106,8 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	public void onTurnEnd() throws Exception { } 	
 	public void onTurnStart() throws Exception { } 
 	public void onGameStart() throws Exception { } 
+	public void onYourTurnEnd() throws Exception { } 
+	public void onYourTurnStart() throws Exception { } 
 	
 	public boolean isCurrentPlayer() { 
 		return game.isCurrentPlayer(this.getPlayer().getPlayerID());

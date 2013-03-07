@@ -1,15 +1,14 @@
 package com.darkenedsky.gemini;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Vector;
 import java.util.List;
-
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 import com.darkenedsky.gemini.tools.XMLTools;
 
 public class Message implements JSONAware, MessageSerializable {
@@ -206,8 +205,9 @@ public class Message implements JSONAware, MessageSerializable {
 	}
 	
 
-	public static Message parseXMLFile(String filename) throws JDOMException, IOException {  
-		Element e = XMLTools.loadXMLFile(filename, true);
+	public static Message parseXMLFile(String filename, Class<?> clazz) throws JDOMException, IOException {  
+		URL fileURL = clazz.getClassLoader().getResource(filename);
+		Element e = XMLTools.loadXMLFile(fileURL.getFile(), true);
 		return new Message(e);
 	}
 	

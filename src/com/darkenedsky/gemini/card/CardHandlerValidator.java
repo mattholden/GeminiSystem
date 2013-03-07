@@ -6,10 +6,10 @@ import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.HandlerValidator;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
-import com.darkenedsky.gemini.exception.CCGInvalidCardContainerException;
-import com.darkenedsky.gemini.exception.CCGInvalidCardControllerException;
-import com.darkenedsky.gemini.exception.CCGInvalidCardTapStateException;
-import com.darkenedsky.gemini.exception.CCGInvalidCardTypeException;
+import com.darkenedsky.gemini.exception.InvalidCardContainerException;
+import com.darkenedsky.gemini.exception.InvalidCardControllerException;
+import com.darkenedsky.gemini.exception.InvalidCardTapStateException;
+import com.darkenedsky.gemini.exception.InvalidCardTypeException;
 
 public class CardHandlerValidator<TCard extends Card> implements HandlerValidator {
 
@@ -81,16 +81,16 @@ public class CardHandlerValidator<TCard extends Card> implements HandlerValidato
 				}
 			}
 			if (!found) 
-				throw new CCGInvalidCardTypeException(cardid);
+				throw new InvalidCardTypeException(cardid);
 		}
 			
 		
 		if (cardIsTapped != null && cardIsTapped != card.isTapped()) 
-			throw new CCGInvalidCardTapStateException(cardid);
+			throw new InvalidCardTapStateException(cardid);
 		
 		if (controllerType != null && card.getController() != null && p != null) { 
 			if (controllerType == CONTROLLER_YOU && p.getPlayerID() != card.getController()) { 
-				throw new CCGInvalidCardControllerException(cardid);				
+				throw new InvalidCardControllerException(cardid);				
 			}
 		}
 
@@ -103,7 +103,7 @@ public class CardHandlerValidator<TCard extends Card> implements HandlerValidato
 				}
 			}
 			if (!contained) { 
-				throw new CCGInvalidCardContainerException(cardid);
+				throw new InvalidCardContainerException(cardid);
 			}
 		}
 	}
