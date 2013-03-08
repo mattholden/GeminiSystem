@@ -21,7 +21,7 @@ public interface HasStats {
 	public boolean hasKeywordOrTag(String field);
 	
 	public void addKeyword(String field, String name);
-	
-	public void addTag(String field, String name);
+
+	void addTag(String field, String name);
 	
 }

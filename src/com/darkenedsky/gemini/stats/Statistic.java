@@ -1,26 +1,21 @@
 package com.darkenedsky.gemini.stats;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.darkenedsky.gemini.GameObject;
-import com.darkenedsky.gemini.Languages;
+import com.darkenedsky.gemini.LocalizedObject;
 import com.darkenedsky.gemini.Message;
-import com.darkenedsky.gemini.MessageSerializable;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.stats.Bonus;
 import com.darkenedsky.gemini.stats.Modifier;
 import com.darkenedsky.gemini.stats.Plus;
 
 
-public class Statistic implements MessageSerializable { 
+public class Statistic extends LocalizedObject { 
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1929381674148057599L;
 
-	private ConcurrentHashMap<String, String> name = new ConcurrentHashMap<String, String>();
-	
 	private static class StatVisibility { 
 		public int visibility;
 		private StatVisibility(int vis) { 
@@ -43,8 +38,8 @@ public class Statistic implements MessageSerializable {
 	}
 	
 	public Statistic(String enName, int i, StatVisibility viz) { 
+		super(enName);
 		baseValue = i;
-		name.put(Languages.ENGLISH, enName);
 		visibility = viz;
 	} 
 	
@@ -137,12 +132,9 @@ public class Statistic implements MessageSerializable {
 			return null;
 		}
 		
-		Message m = new Message();
+		Message m = super.serialize(p);
 		m.put("basevalue", getBaseValue());
 		m.put("currentvalue", this.getValueWithBonuses());
-		
-		String lang = (p == null) ? Languages.ENGLISH : p.getLanguage();
-		m.put("name", this.name.get(lang));
 		
 		// You don't need this when you're playing but might be nice to print on a "character sheet"
 		if (p == null) { 

@@ -1,8 +1,6 @@
 package com.darkenedsky.gemini.card;
-import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.HashMap;
 import com.darkenedsky.gemini.GameObjectWithStats;
-import com.darkenedsky.gemini.Languages;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 
@@ -22,8 +20,8 @@ public class Card extends GameObjectWithStats {
 	protected boolean psuedoCard = false;
 	
 	protected String artist = null;
-	protected ConcurrentHashMap<String, String> rulesText = new ConcurrentHashMap<String, String>();
-	protected ConcurrentHashMap<String, String> flavorText = new ConcurrentHashMap<String, String>();
+	protected HashMap<String, String> rulesText = new HashMap<String, String>();
+	protected HashMap<String, String> flavorText = new HashMap<String, String>();
 
 	public Card(int defID, int type, Long objID, Long ownerID, String englishName) {
 		super(defID, objID, englishName);		
@@ -109,12 +107,9 @@ public class Card extends GameObjectWithStats {
 	@Override
 	public Message serialize(Player p) { 
 		Message m = super.serialize(p);
-		String lang = (p == null) ? Languages.ENGLISH : p.getLanguage();
-		String rules = this.rulesText.get(lang);
-		String flavor = this.flavorText.get(lang);
 		m.put("card_type", cardType);
-		m.put("rules", rules);
-		m.put("flavor", flavor);
+		m.put("rules", localize(rulesText, p));
+		m.put("flavor", localize(flavorText, p));
 		m.put("controller", controller);
 		m.put("owner", owner);
 		m.put("tapped", tapped);

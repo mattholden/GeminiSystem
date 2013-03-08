@@ -2,6 +2,7 @@ package com.darkenedsky.gemini.card;
 
 import java.util.Vector;
 
+import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 
 public class CCGCharacter<TCard extends CCGCard> extends CardCharacter<TCard> {
@@ -33,6 +34,14 @@ public class CCGCharacter<TCard extends CCGCard> extends CardCharacter<TCard> {
 	
 	public void shuffleDeck() throws Exception { 
 		getDeck().shuffle();
+	}
+	
+	@Override
+	public Message serialize(Player p) { 
+		Message m = super.serialize(p);
+		if (p.getPlayerID() == getPlayer().getPlayerID())
+			m.put("deckid", deckID);
+		return m;
 	}
 	
 	/** Draw the top 'num' cards, removing it from the deck.
