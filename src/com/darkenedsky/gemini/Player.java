@@ -3,7 +3,8 @@ package com.darkenedsky.gemini;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
-
+import com.darkenedsky.gemini.badge.Badge;
+import com.darkenedsky.gemini.guild.Guild;
 import com.darkenedsky.gemini.stats.Gender;
 
 public class Player implements MessageSerializable, Gender {
@@ -17,9 +18,12 @@ public class Player implements MessageSerializable, Gender {
 	private String username;
 	private String language = "en";
 	private int gender = Gender.GENDER_UNDISCLOSED;
-	
+	private Long guildID, guildRankID;	
+	private Vector<Badge> badges = new Vector<Badge>();
 	private Vector<Long> currentGameIDs = new Vector<Long>();
+	private Vector<Message> outgoingMessages = new Vector<Message>();
 	private WinLossRecord record = null;
+	private Guild guild;
 	
 	public Player(ResultSet set) throws SQLException { 
 		username = set.getString("username");
@@ -29,10 +33,12 @@ public class Player implements MessageSerializable, Gender {
 		}
 		playerID = set.getLong("playerid");
 		gender = set.getInt("gender");
+		guildID = set.getLong("guildid");
+		guildRankID = set.getLong("guildrankid");
+		
 	}
 	
-	private Vector<Message> outgoingMessages = new Vector<Message>();
-	
+
 	public Vector<Message> popOutgoingMessages() { 
 		Vector<Message> v = new Vector<Message>();
 		v.addAll(outgoingMessages);
@@ -42,6 +48,16 @@ public class Player implements MessageSerializable, Gender {
 	
 	public Vector<Long> getCurrentGames() { 
 		return currentGameIDs;
+	}
+
+	public Guild getGuild() { return guild; }
+	public void setGuild(Guild g) { guild = g; }
+	
+	public Vector<Badge> getBadges() { 
+		return badges;
+	}
+	public void setBadges(Vector<Badge> bad) { 
+		badges = bad;
 	}
 	
 	public void addCurrentGame(long id) { 
@@ -94,6 +110,22 @@ public class Player implements MessageSerializable, Gender {
 	@Override
 	public void setGender(int gend) { gender = gend; }
 	
+	public Long getGuildID() {
+		return guildID;
+	}
+
+	public void setGuildID(Long guildID) {
+		this.guildID = guildID;
+	}
+
+	public Long getGuildRankID() {
+		return guildRankID;
+	}
+
+	public void setGuildRankID(Long guildRankID) {
+		this.guildRankID = guildRankID;
+	}
+
 	@Override
 	public Message serialize(Player p) {
 		Message m = new Message();
@@ -101,6 +133,28 @@ public class Player implements MessageSerializable, Gender {
 		m.put("playerid", playerID);
 		m.put("language", language);
 		m.put("gender", gender);
+		
+		// don't put the whole guild, thats overkill for this
+		if (guild != null) {
+			Message mguild = new Message();
+			mguild.put("guildid", guildID);
+			mguild.put("guildrankid", guildRankID);
+			mguild.put("name", guild.getName());
+			m.put("guild", mguild, p);
+		}
+		
+		if (p.getPlayerID() == playerID) { 
+			m.addList("games");
+			for (Long game : this.currentGameIDs) { 
+				Message g = new Message();
+				g.put("gameid", game);
+				m.addToList("games", g);
+			}
+		}
+		m.addList("badges");
+		for (Badge bad: this.badges) { 			
+			m.addToList("badges", bad, p);
+		}
 		
 		if (record != null)
 			m.put("record", record, p);

@@ -132,7 +132,18 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	public Message serialize(Player p) { 
 		Message m = new Message();
 		m.put("name", name);
-		m.put("player", player, p);
+		
+		// you dont need the whole player at this point, do you?
+		// this is still a lot but saves badges, record, some guild info, etc.
+		m.put("playerid", player.getPlayerID());
+		m.put("language", player.getLanguage());
+		m.put("username", player.getUsername());		
+		m.put("gender", player.getGender());
+		if (player.getGuild() != null) { 
+			m.put("guildid", player.getGuildID());
+			m.put("guildname", player.getGuild().getName());
+		}
+		
 		m.put("eliminated", eliminated);
 		m.addList("stats");
 		for (Map.Entry<String, Statistic> stat : statistics.entrySet()) {

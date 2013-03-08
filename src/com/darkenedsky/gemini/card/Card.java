@@ -19,6 +19,7 @@ public class Card extends GameObjectWithStats {
 	private boolean tapped = false;
 	protected Long owner;
 	protected Long controller;
+	protected boolean psuedoCard = false;
 	
 	protected String artist = null;
 	protected ConcurrentHashMap<String, String> rulesText = new ConcurrentHashMap<String, String>();
@@ -47,6 +48,14 @@ public class Card extends GameObjectWithStats {
 	public void validateUntap(Card tap) throws Exception { /* blank */ }
 	public void observeUntap(Card tap) throws Exception { /* blank */ }
 	
+	public boolean isPsuedoCard() {
+		return psuedoCard;
+	}
+
+	public void setPsuedoCard(boolean psuedoCard) {
+		this.psuedoCard = psuedoCard;
+	}
+
 	public int getType() { 
 		return cardType;
 	}

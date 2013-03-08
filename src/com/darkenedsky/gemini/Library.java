@@ -22,13 +22,12 @@ public class Library implements MessageSerializable {
 	}
 
 	public LibrarySection addSection(String name) {
+		if (getSection(name) != null) 
+			return getSection(name);
+		
 		LibrarySection ls = new LibrarySection();
 		sections.put(name, ls);
 		return ls;
-	}
-	
-	public LibrarySection addSection(String name, GameObject[] stuff) {		
-		return sections.put(name, new LibrarySection(stuff));
 	}
 	
 	public void merge(Library other) { 

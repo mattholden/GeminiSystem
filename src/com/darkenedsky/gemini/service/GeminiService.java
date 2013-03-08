@@ -11,6 +11,7 @@ import com.darkenedsky.gemini.GameCharacter;
 import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.badge.BadgeService;
 import com.darkenedsky.gemini.card.CCGDeckService;
 import com.darkenedsky.gemini.exception.GeminiException;
 import com.darkenedsky.gemini.exception.InvalidActionException;
@@ -47,6 +48,12 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	/** Hard pointer to the GameCacheService, which will also be in the services list */
 	private GameCacheService<TGame> gameCacheService;
 	
+	/** Badge service */
+	private BadgeService badgeService;
+	
+	/** Guild service */
+	private GuildService guildService;
+	
 	/** Construct the Gemini service. 
 	 * 
 	 * @param theGameClass The class object for the specific Game subclass. Should match TGame.
@@ -64,12 +71,21 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 		jdbc = new JDBCConnection(settings.getString("database_user"), settings.getString("database_password"), settings.getString("database_path"), settings.getString("database_driver"));		
 		gameCacheService = new GameCacheService<TGame>(theGameClass, settings, jdbc, lib);
 		addService(gameCacheService);
+		
 		addService(new AnalyticsService(jdbc));
-		addService(new GuildService(jdbc));
+		
+		badgeService = new BadgeService(jdbc, lib);
+		addService(badgeService);
 		
 		// deliberately don't add the Session Manager as a service using addService(); its actions behave 
 		// differently because the user might not be logged in when interacting with them.
 		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings, gameCacheService.getWinLossRecordManager());		
+		
+		guildService = new GuildService(jdbc, sessions);
+		addService(guildService);
+		
+		sessions.setBadgeService(badgeService);
+		sessions.setGuildService(guildService);
 		
 		LOG.debug("Gemini Service for game " + settings.getString("servicename") + " initialized OK.");		
 	}

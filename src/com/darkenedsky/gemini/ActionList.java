@@ -37,13 +37,17 @@ public interface ActionList {
 		VERIFY_EMAIL_REQUEST = 201,
 		VERIFY_EMAIL_REDEEM = 202,
 		LOGOUT = 203,
-		GET_ANALYTICS = 204;
+		GET_ANALYTICS = 204,
+		GRANT_BADGE = 205;
 	
 	// chat system and guild commands
 	public static final int
 		CHAT = 300,
 		WHISPER = 301,
-		GUILDCHAT = 302;
+		
+		GUILD_CREATE = 350,
+		GUILD_CHAT = 351,
+		GUILD_GET = 352;
 	
 	// card games / ccgs
 	public static final int 

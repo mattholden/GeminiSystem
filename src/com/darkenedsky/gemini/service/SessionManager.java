@@ -5,13 +5,16 @@ import java.lang.reflect.Constructor;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.badge.BadgeService;
 import com.darkenedsky.gemini.exception.InvalidLoginException;
 import com.darkenedsky.gemini.exception.InvalidSessionException;
+import com.darkenedsky.gemini.guild.GuildService;
 import com.darkenedsky.gemini.tools.FileTools;
 import com.darkenedsky.gemini.tools.StringTools;
 import com.darkenedsky.gemini.tools.XMLTools;
@@ -23,7 +26,7 @@ import com.darkenedsky.gemini.tools.XMLTools;
  *
  * @param <TPlay> Player type
  */
-class SessionManager<TPlay extends Player> implements ActionList {
+public class SessionManager<TPlay extends Player> implements ActionList {
 
 	/** Cache of all the currently logged-in sessions. */
 	private ConcurrentHashMap<String, TPlay> sessions = new ConcurrentHashMap<String, TPlay>();
@@ -40,6 +43,12 @@ class SessionManager<TPlay extends Player> implements ActionList {
 	/** The Win/Loss Record manager, so we can load their original W/L/D record */
 	private WinLossRecordManager recordManager;
 	
+	/** Service that tracks player badges */
+	private BadgeService badgeService;
+	
+	/** Service that tracks guild actions */
+	private GuildService guildService;
+	
 	/** Construct the Session Manager.
 	 * 
 	 * @param pClass The class object for the Player subclass to generate.
@@ -52,6 +61,13 @@ class SessionManager<TPlay extends Player> implements ActionList {
 		jdbc = jDBC;
 		recordManager = rec;
 		settings = sets;
+	}
+	
+	public void setBadgeService(BadgeService b) { 
+		badgeService = b;
+	}
+	public void setGuildService(GuildService g) { 
+		guildService = g;
 	}
 	
 	/** Get the session for a token presented from an incoming client message.
@@ -322,8 +338,10 @@ class SessionManager<TPlay extends Player> implements ActionList {
 				sessions.put(token, player);
 				set2.close();
 								
-				
+				if (player.getGuildID() != null)
+					player.setGuild(guildService.getGuild(player.getGuildID()));
 				player.setRecord(recordManager.get(player.getPlayerID()));
+				player.setBadges(badgeService.loadBadges(player.getPlayerID()));
 				return player;
 			}
 			else { 
@@ -336,5 +354,14 @@ class SessionManager<TPlay extends Player> implements ActionList {
 			throw x;
 		}
 	}
+
 		
+	public Vector<Player> getPlayersInGuild(long guildid) { 
+		Vector<Player> v = new Vector<Player>();
+		for (Player p : this.sessions.values()) { 
+			if (p.getGuildID() == guildid)
+				v.add(p);
+		}
+		return v;
+	}
 }
