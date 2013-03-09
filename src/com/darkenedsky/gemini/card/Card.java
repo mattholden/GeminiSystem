@@ -3,9 +3,10 @@ import java.util.HashMap;
 import com.darkenedsky.gemini.GameObjectWithStats;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.stats.Bonus;
 
 
-public class Card extends GameObjectWithStats {
+public abstract class Card extends GameObjectWithStats {
 
 	/**
 	 * 
@@ -37,10 +38,12 @@ public class Card extends GameObjectWithStats {
 
 	public void onDrawn() throws Exception { /* Deliberately blank */}
 	public void onDiscarded() throws Exception { /* Deliberately blank */ }
-	public void onTurnStart() throws Exception { /* blank */ } 
-	public void onTurnEnd() throws Exception { /* blank */ } 
-	public void onControllerTurnStart() throws Exception { /* blank */ } 
-	public void onControllerTurnEnd() throws Exception { /* blank */ } 
+	
+	public void onTurnStart() throws Exception { expireBonuses(Bonus.START_OF_NEXT_TURN); } 
+	public void onTurnEnd() throws Exception { expireBonuses(Bonus.END_OF_THIS_TURN);  } 
+	public void onControllerTurnStart() throws Exception { expireBonuses(Bonus.START_OF_YOUR_NEXT_TURN); } 
+	public void onControllerTurnEnd() throws Exception { expireBonuses(Bonus.END_OF_YOUR_NEXT_TURN); } 
+		
 	public void validateTap(Card tap) throws Exception { /* blank */ }
 	public void observeTap(Card tap) throws Exception { /* blank */ }
 	public void validateUntap(Card tap) throws Exception { /* blank */ }
@@ -119,5 +122,6 @@ public class Card extends GameObjectWithStats {
 		}
 		return m;
 	}
+
 
 }

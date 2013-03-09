@@ -361,7 +361,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		if (turnCount > 0) { 
 			onTurnEnd();
 			for (TChar ch : characters) { 
-				ch.onTurnEnd();
+				ch.onTurnEnd();				
 			}
 			characters.get(currentPlayerIndex).onYourTurnEnd();
 		

@@ -59,8 +59,8 @@ public class GameObjectWithStats extends GameObject implements HasStats {
 	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#addBonus(int, com.darkenedsky.gemini.GameObject, com.darkenedsky.gemini.modifier.Modifier, java.lang.String)
 	 */
 	@Override
-	public void addBonus(int stat, GameObject source, Modifier mod, String conditional) { 
-		addBonus(stat, new Bonus(source, mod, conditional));
+	public void addBonus(int stat, GameObject source, Modifier mod, Integer exp) { 
+		addBonus(stat, new Bonus(source, mod, exp));
 	}
 
 
@@ -109,4 +109,14 @@ public class GameObjectWithStats extends GameObject implements HasStats {
 		statistics.put(field, new Statistic(name, 0, Statistic.ALWAYS_HIDDEN));
 	}
 	
+	@Override
+	public void expireBonuses(int expiration) { 
+		for (Statistic s : statistics.values()) { 
+			for (Bonus b : s.getBonuses()) { 
+				if (b.getExpiration() == expiration) { 
+					s.removeBonus(b);
+				}
+			}
+		}
+	}
 }

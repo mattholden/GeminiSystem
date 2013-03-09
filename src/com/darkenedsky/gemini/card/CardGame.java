@@ -17,7 +17,6 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 		super(gid, e, p, tcharClazz);
 	}
 	
-
 	public abstract CardContainer<TCard> findCard(long cardID) throws Exception;
 	public abstract TCard getCard(long cardID) throws Exception;
 	protected abstract Vector<TCard> getAllCardsInPlay(); 
@@ -30,6 +29,7 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 			card.onTurnStart();
 			if (card.getController() == this.getCurrentPlayer()) 
 				card.onControllerTurnStart();
+						
 		}
 	}
 	@Override
@@ -58,12 +58,14 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 		}
 	}
 
+	
 	public void observeUntap(TCard tapping) throws Exception { 
 		for (TCard card : getAllCardsInPlay()) { 
 			card.observeUntap(tapping);
 		}
 	}
 
+	
 	public void validateUntap(TCard tapping) throws Exception { 
 
 		for (TCard card : getAllCardsInPlay()) { 

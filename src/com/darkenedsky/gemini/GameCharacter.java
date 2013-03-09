@@ -73,8 +73,8 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	}
 
 	@Override
-	public void addBonus(int stat, GameObject source, Modifier mod, String conditional) { 
-		addBonus(stat, new Bonus(source, mod, conditional));
+	public void addBonus(int stat, GameObject source, Modifier mod, Integer expires) { 
+		addBonus(stat, new Bonus(source, mod, expires));
 	}
 
 	
@@ -103,11 +103,33 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 		return false;
 	}
 	
-	public void onTurnEnd() throws Exception { } 	
-	public void onTurnStart() throws Exception { } 
+	@Override
+	public void expireBonuses(int expiration) { 
+		for (Statistic s : statistics.values()) { 
+			for (Bonus b : s.getBonuses()) { 
+				if (b.getExpiration() == expiration) { 
+					s.removeBonus(b);
+				}
+			}
+		}
+	}
+	
+	public void onTurnEnd() throws Exception { 
+		expireBonuses(Bonus.END_OF_THIS_TURN);
+	} 	
+	
+	public void onTurnStart() throws Exception { 
+		expireBonuses(Bonus.START_OF_NEXT_TURN);
+	} 
 	public void onGameStart() throws Exception { } 
-	public void onYourTurnEnd() throws Exception { } 
-	public void onYourTurnStart() throws Exception { } 
+	
+	public void onYourTurnEnd() throws Exception {
+		expireBonuses(Bonus.END_OF_YOUR_NEXT_TURN);
+	} 
+	
+	public void onYourTurnStart() throws Exception { 
+		expireBonuses(Bonus.START_OF_YOUR_NEXT_TURN);
+	}
 	
 	public boolean isCurrentPlayer() { 
 		return game.isCurrentPlayer(this.getPlayer().getPlayerID());

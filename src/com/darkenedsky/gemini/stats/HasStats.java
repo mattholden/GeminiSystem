@@ -15,13 +15,14 @@ public interface HasStats {
 
 	public abstract void addBonus(int stat, Bonus b);
 
-	public abstract void addBonus(int stat, GameObject source, Modifier mod,
-			String conditional);
-
 	public boolean hasKeywordOrTag(String field);
 	
 	public void addKeyword(String field, String name);
 
 	void addTag(String field, String name);
+
+	void addBonus(int stat, GameObject source, Modifier mod, Integer expires);
+
+	void expireBonuses(int expiration);
 	
 }

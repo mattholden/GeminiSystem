@@ -100,12 +100,17 @@ public class Statistic extends LocalizedObject {
 	public void addBonus(GameObject src, int plus) { 
 		addBonus(src, new Plus(plus));
 	}
-	
-	public void addBonus(GameObject src, Modifier mod) { addBonus(src, mod, null); }
-	
-	public void addBonus(GameObject source, Modifier mod, String conditional) { 
-		bonuses.add(new Bonus(source, mod, conditional));
+	public void addBonus(GameObject src, int plus, Integer exp) { 
+		addBonus(src, new Plus(plus), exp);
 	}
+	
+	public void addBonus(GameObject src, Modifier mod) { addBonus(src, mod, null, null); }
+	public void addBonus(GameObject src, Modifier mod, Integer exp) { addBonus(src, mod, exp, null); }
+	
+	public void addBonus(GameObject src, Modifier mod, Integer exp, String con) { 
+		bonuses.add(new Bonus(src, mod, exp, con));
+	}
+	
 	public void addBonus(Bonus b) { 
 		bonuses.add(b);
 	}
@@ -116,6 +121,10 @@ public class Statistic extends LocalizedObject {
 				bonuses.remove(b);
 			}
 		}
+	}
+	
+	public void removeBonus(Bonus b) { 
+		bonuses.remove(b);
 	}
 	
 	public Vector<Bonus> getBonuses() { 

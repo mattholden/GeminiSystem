@@ -4,7 +4,7 @@ import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.stats.Statistic;
 
-public abstract class CCGCard extends Card {
+public abstract class CCGCard extends Card  {
 
 	private int maxInDeck = 4;
 	
@@ -56,7 +56,7 @@ public abstract class CCGCard extends Card {
 	public int getMaxInDeck() {
 		return maxInDeck;
 	}
-	
+		
 	public void observeDraw(CCGCard drawn, Player p) throws Exception { } 
 	
 }

@@ -54,6 +54,7 @@ public abstract class CCGGame<TCard extends CCGCard, TChar extends CCGCharacter<
 		deckService = (CCGDeckService<TCard>)deckService2;
 	}
 
+	
 	public void observeDraw(TCard drawn, Player p) throws Exception { 
 		for (TCard card : getAllCardsInPlay()) { 
 			card.observeDraw(drawn, p);

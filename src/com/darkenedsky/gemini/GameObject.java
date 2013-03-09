@@ -1,6 +1,6 @@
 package com.darkenedsky.gemini;
 
-public abstract class GameObject extends LocalizedObject implements Comparable<GameObject>, MessageSerializable {
+public  class GameObject extends LocalizedObject implements Comparable<GameObject>, MessageSerializable {
 
 	/**
 	 * 
