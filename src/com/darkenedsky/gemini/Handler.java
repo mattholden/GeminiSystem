@@ -18,6 +18,7 @@ public abstract class Handler implements MessageProcessor, HandlerValidator {
 		
 		for (HandlerValidator hv : vals) { 
 			validators.add(hv);
+			hv.setGame(game);
 		}
 	}
 	

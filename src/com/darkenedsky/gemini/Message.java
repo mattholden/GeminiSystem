@@ -18,8 +18,8 @@ public class Message implements JSONAware, MessageSerializable {
 	SESSION_IPADDRESS = "session_ipaddress",
 	SESSION_TOKEN = "session",
 	ACTION = "action",
-	TARGET_PLAYER = "targetplayerid";
-
+	SENDER = "sender";
+	
 	/** Where we're actually storing the content */
 	private JSONObject object = new JSONObject();
 	
@@ -70,9 +70,11 @@ public class Message implements JSONAware, MessageSerializable {
 		put("action", actionid);
 	}
 	
-	public Message (int actionid, long gameid) { 
+	public Message (int actionid, long gameid, Long playerid) { 
 		this(actionid);
 		put("gameid", gameid);
+		if (playerid != null)
+			put(SENDER, playerid);
 	}
 	
 	public Message() {

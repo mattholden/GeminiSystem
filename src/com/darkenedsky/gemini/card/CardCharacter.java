@@ -1,6 +1,5 @@
 package com.darkenedsky.gemini.card;
 import com.darkenedsky.gemini.GameCharacter;
-import com.darkenedsky.gemini.GameObject;
 import com.darkenedsky.gemini.Player;
 
 public class CardCharacter<TCard extends Card> extends GameCharacter {

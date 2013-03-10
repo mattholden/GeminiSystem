@@ -30,7 +30,7 @@ public class GameResult<TChar extends GameCharacter> implements MessageSerializa
 	
 	@Override
 	public Message serialize(Player p) { 
-		Message m = new Message(ActionList.GAME_END, gameid);
+		Message m = new Message(ActionList.GAME_END, gameid, null);
 		
 		if (!winners.isEmpty()) { 
 			m.addList("win");
