@@ -4,6 +4,7 @@ import com.darkenedsky.gemini.GameObjectWithStats;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.stats.Bonus;
+import com.darkenedsky.gemini.stats.Statistic;
 
 
 public abstract class Card extends GameObjectWithStats {
@@ -24,11 +25,14 @@ public abstract class Card extends GameObjectWithStats {
 	protected HashMap<String, String> rulesText = new HashMap<String, String>();
 	protected HashMap<String, String> flavorText = new HashMap<String, String>();
 
+	private static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start";
+	
 	public Card(int defID, int type, Long objID, Long ownerID, String englishName) {
 		super(defID, objID, englishName);		
 		owner = ownerID;
 		controller = ownerID;
 		cardType = type;
+		statistics.put(UNTAPS_AT_TURN_START, new Statistic("untaps at turn start", 1, Statistic.ALWAYS_HIDDEN));
 	}
 	
 	public Card(int defID, int type, Long objID, String englishName) {
@@ -41,7 +45,11 @@ public abstract class Card extends GameObjectWithStats {
 	
 	public void onTurnStart() throws Exception { expireBonuses(Bonus.START_OF_NEXT_TURN); } 
 	public void onTurnEnd() throws Exception { expireBonuses(Bonus.END_OF_THIS_TURN);  } 
-	public void onControllerTurnStart() throws Exception { expireBonuses(Bonus.START_OF_YOUR_NEXT_TURN); } 
+	public void onControllerTurnStart() throws Exception { 
+		if (getStat(UNTAPS_AT_TURN_START).getValueWithBonuses() > 0)
+			setTapped(false);
+		expireBonuses(Bonus.START_OF_YOUR_NEXT_TURN); 
+	} 
 	public void onControllerTurnEnd() throws Exception { expireBonuses(Bonus.END_OF_YOUR_NEXT_TURN); } 
 		
 	public void validateTap(Card tap) throws Exception { /* blank */ }
