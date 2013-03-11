@@ -326,17 +326,25 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	}
 		
 	
-	public void sendToAllPlayers(int action, Long sender) { sendToAllPlayers(action, this, "game", sender); }
-	
-	public void sendToAllPlayers(int action, MessageSerializable object, String objectTag, Long sender) { 
-		for (Player play : players) { 
-			Message m = new Message(action);
-			m.put("gameid", getGameID());
-			if (sender != null)
-				m.put(Message.SENDER, sender);
-			m.put(objectTag, object, play);
+	public void sendToSomePlayers(int action, MessageSerializable object, String objectTag, Long sender, long... toSendTo) { 
+		for (Long to : toSendTo) {
+			Player play = getPlayer(to);
+			Message m = new Message(action, getGameID(), sender);
+			m.put("game", this, play);
+			if (object != null)
+				m.put(objectTag, object, play);
 			play.pushOutgoingMessage(m);
 		}
+	}
+	public void sendToAllPlayers(int action, Long sender) { sendToAllPlayers(action, null, "game", sender); }
+	public void sendToSomePlayers(int action, Long sender, long... to) { sendToSomePlayers(action, null, "game", sender, to); }
+	
+	public void sendToAllPlayers(int action, MessageSerializable object, String objectTag, Long sender) {
+		long[] playz = new long[getPlayers().size()];
+		for (int i = 0; i < getPlayers().size(); i++) { 
+			playz[i] = getPlayers().get(i).getPlayerID();
+		}
+		sendToSomePlayers(action, object, objectTag, sender, playz);
 	}
 	
 	public Vector<TChar> getCharacters() { return characters; }
