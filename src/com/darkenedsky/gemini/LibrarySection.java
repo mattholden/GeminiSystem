@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.darkenedsky.gemini.exception.DuplicateDefinitionIDException;
 import com.darkenedsky.gemini.exception.InvalidObjectException;
 
 public class LibrarySection  {
@@ -46,6 +47,9 @@ public class LibrarySection  {
 	}
 	
 	public void add(GameObject o) { 
+		if (objects.get(o.getDefinitionID()) != null) { 
+			throw new DuplicateDefinitionIDException(o.toString(), objects.get(o.getDefinitionID()).toString());
+		}
 		objects.put(o.getDefinitionID(), o);
 	}
 	

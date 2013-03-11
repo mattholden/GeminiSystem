@@ -25,7 +25,7 @@ public abstract class Card extends GameObjectWithStats {
 	protected HashMap<String, String> rulesText = new HashMap<String, String>();
 	protected HashMap<String, String> flavorText = new HashMap<String, String>();
 
-	private static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start";
+	private static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start", COUNTERS = "counters";
 	
 	public Card(int defID, int type, Long objID, Long ownerID, String englishName) {
 		super(defID, objID, englishName);		
@@ -33,6 +33,7 @@ public abstract class Card extends GameObjectWithStats {
 		controller = ownerID;
 		cardType = type;
 		statistics.put(UNTAPS_AT_TURN_START, new Statistic("untaps at turn start", 1, Statistic.ALWAYS_HIDDEN));
+		statistics.put(COUNTERS, new Statistic("Counters", 0, Statistic.HIDDEN_IF_ZERO));
 	}
 	
 	public Card(int defID, int type, Long objID, String englishName) {

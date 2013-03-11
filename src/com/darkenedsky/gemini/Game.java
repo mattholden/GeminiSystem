@@ -196,6 +196,8 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		return players.size() == this.maxplayers;
 	}
 	
+	public int getTurnCount() { return turnCount; }
+	
 	protected void setReady(Message m, Player p) throws Exception { 
 		playersReady.put(p.getPlayerID(), m.getBoolean("ready"));
 		sendToAllPlayers(SET_READY, p.getPlayerID());				
