@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.darkenedsky.gemini.GameObject;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.exception.InvalidStatisticException;
 import com.darkenedsky.gemini.stats.Bonus;
 import com.darkenedsky.gemini.stats.HasStats;
 import com.darkenedsky.gemini.stats.Modifier;
@@ -23,10 +24,17 @@ public class GameObjectWithStats extends GameObject implements HasStats {
 	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#getStat(java.lang.String)
 	 */
 	@Override
-	public Statistic getStat(String stat) { 
-		return statistics.get(stat);
+	public Statistic getStat(String stat)  throws InvalidStatisticException { 
+		Statistic aStat = statistics.get(stat);
+		if (aStat == null) throw new InvalidStatisticException(stat, getObjectID(), null);
+		return aStat;
 	}
 
+	@Override
+	public int getStatValue(String stat)  throws InvalidStatisticException { 
+		return getStat(stat).getValueWithBonuses();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#getStats()
 	 */
@@ -48,7 +56,7 @@ public class GameObjectWithStats extends GameObject implements HasStats {
 	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#addBonus(int, com.darkenedsky.gemini.modifier.Bonus)
 	 */
 	@Override
-	public void addBonus(int stat, Bonus b) { 
+	public void addBonus(String stat, Bonus b) throws InvalidStatisticException { 
 			
 		Statistic s = statistics.get(stat);
 		if (s != null)
@@ -59,7 +67,7 @@ public class GameObjectWithStats extends GameObject implements HasStats {
 	 * @see com.darkenedsky.gemini.card.HasStatsAndTags#addBonus(int, com.darkenedsky.gemini.GameObject, com.darkenedsky.gemini.modifier.Modifier, java.lang.String)
 	 */
 	@Override
-	public void addBonus(int stat, GameObject source, Modifier mod, Integer exp) { 
+	public void addBonus(String stat, GameObject source, Modifier mod, Integer exp) throws InvalidStatisticException { 
 		addBonus(stat, new Bonus(source, mod, exp));
 	}
 
@@ -95,7 +103,7 @@ public class GameObjectWithStats extends GameObject implements HasStats {
 	}
 	
 	@Override
-	public boolean hasKeywordOrTag(String field) { 
+	public boolean hasKeywordOrTag(String field) throws InvalidStatisticException { 
 		return (statistics.get(field).getValueWithBonuses() > 0);
 	}
 	

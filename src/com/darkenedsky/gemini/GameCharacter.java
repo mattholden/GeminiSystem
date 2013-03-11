@@ -1,6 +1,8 @@
 package com.darkenedsky.gemini;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.darkenedsky.gemini.exception.InvalidStatisticException;
 import com.darkenedsky.gemini.stats.Bonus;
 import com.darkenedsky.gemini.stats.Gender;
 import com.darkenedsky.gemini.stats.HasStats;
@@ -52,8 +54,16 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	}
 	@Override
 	public Statistic getStat(String stat) { 
-		return statistics.get(stat);
+		Statistic aStat = statistics.get(stat);
+		if (aStat == null) throw new InvalidStatisticException(stat, null, getPlayer().getPlayerID());
+		return aStat;
 	}
+
+	@Override
+	public int getStatValue(String stat)  throws InvalidStatisticException { 
+		return getStat(stat).getValueWithBonuses();
+	}
+	
 	@Override
 	public Map<String,Statistic> getStats() { 
 		return statistics;
@@ -65,7 +75,7 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	}
 
 	@Override
-	public void addBonus(int stat, Bonus b) { 
+	public void addBonus(String stat, Bonus b) throws InvalidStatisticException { 
 			
 		Statistic s = statistics.get(stat);
 		if (s != null)
@@ -73,10 +83,11 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 	}
 
 	@Override
-	public void addBonus(int stat, GameObject source, Modifier mod, Integer expires) { 
+	public void addBonus(String stat, GameObject source, Modifier mod, Integer expires)  throws InvalidStatisticException { 
 		addBonus(stat, new Bonus(source, mod, expires));
 	}
 
+	
 	
 	
 	public String getName() {
