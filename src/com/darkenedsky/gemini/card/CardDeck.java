@@ -20,6 +20,8 @@ public class CardDeck<TCard extends Card> implements CardContainer<TCard> {
 	
 	private Long playerID;
 	
+	public int size() { return cards.size(); }
+	
 	@Override
 	public int getContainerType() {
 		return deckType;

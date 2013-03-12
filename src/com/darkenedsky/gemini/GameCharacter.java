@@ -161,6 +161,8 @@ public class GameCharacter implements MessageSerializable, HasStats, Gender {
 		statistics.put(field, new Statistic(name, 0, Statistic.ALWAYS_HIDDEN));
 	}
 		
+	public void validateYourTurnEnd() throws Exception { }
+	
 	@Override
 	public Message serialize(Player p) { 
 		Message m = new Message();

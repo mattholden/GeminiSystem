@@ -108,6 +108,18 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		whisper.getGeneralValidator().setRequireEliminated(null);
 		handlers.put(WHISPER,whisper);
 		
+		Handler gameState = new Handler(this) { 
+			@Override
+			public void processMessage(Message m, Player p) throws Exception { 
+				// do nothing -- the service will then send the default game state message after this.
+			}
+		};
+		gameState.getGeneralValidator().setPhases();
+		gameState.getGeneralValidator().setRequireEliminated(null);
+		gameState.getGeneralValidator().setRequiresSession(Handler.REQUIRES_YES);
+		gameState.getGeneralValidator().setTurnState(Handler.ON_ANY_TURN);
+		handlers.put(GAME_STATE, gameState);
+		
 		// Add a player to the game in lobby state
 		Handler addPlay = new Handler(this) { 
 			@Override
@@ -131,7 +143,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 				players.remove(p);
 				playersReady.remove(p.getPlayerID());
 				p.removeCurrentGame(getGameID());
-				sendToAllPlayers(DROP_PLAYER, p.getPlayerID());					
+				Message reply = new Message(DROP_PLAYER, getGameID(), p.getPlayerID());
+				for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
+				
 			}
 		};
 		dropPlay.getGeneralValidator().setPhases(CREATE_GAME);
@@ -181,7 +195,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			@Override
 			public void processMessage(Message m, Player p) throws Exception { 
 				getCharacter(p.getPlayerID()).setEliminated(true);
-				sendToAllPlayers(FORFEIT, p.getPlayerID());									
+				Message reply = new Message(FORFEIT, getGameID(), p.getPlayerID());
+				for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
+								
 				startNewTurn();
 			}
 		};
@@ -200,7 +216,8 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	
 	protected void setReady(Message m, Player p) throws Exception { 
 		playersReady.put(p.getPlayerID(), m.getBoolean("ready"));
-		sendToAllPlayers(SET_READY, p.getPlayerID());				
+		Message reply = new Message(SET_READY, getGameID(), p.getPlayerID());
+		for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
 	}
 	
 	protected void onGameStart() throws Exception { } 
@@ -221,6 +238,24 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 					
 	}
 	
+	/** Send the game state after any other messages, to make sure you didn't miss anything */
+	@Override
+	public void processMessage(Message m, Player p) throws Exception { 
+		super.processMessage(m, p);
+		
+		// these can't change the gamestate
+		int action = m.getInt("action");
+		if (action == CHAT || action == WHISPER) return;
+		
+		pushGameState(p);		
+	}
+	
+	private void pushGameState(Player p) { 
+		// send the game state...
+		Message gstate = new Message(GAME_STATE, getGameID(), p.getPlayerID());
+		gstate.put("game", this, p);
+		p.pushOutgoingMessage(gstate);
+	}
 	
 	/** Get the next game object ID, and increment the counter. 
 	 * @return the next game object ID
@@ -266,7 +301,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		players.add((Player)p);
 		playersReady.put(p.getPlayerID(), false);
 		clearReadyStatuses();
-		sendToAllPlayers(ADD_PLAYER, p.getPlayerID());
+		Message reply = new Message(TURN_START, getGameID(), p.getPlayerID());
+		for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
+
 	}
 
 	private void clearReadyStatuses() { 
@@ -328,6 +365,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	}
 		
 	
+	/*
 	public void sendToSomePlayers(int action, MessageSerializable object, String objectTag, Long sender, long... toSendTo) { 
 		for (Long to : toSendTo) {
 			Player play = getPlayer(to);
@@ -348,6 +386,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		}
 		sendToSomePlayers(action, object, objectTag, sender, playz);
 	}
+	*/
 	
 	public Vector<TChar> getCharacters() { return characters; }
 	
@@ -371,6 +410,8 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	protected void startNewTurn() throws Exception { 
 		  		
 		if (turnCount > 0) { 
+			characters.get(currentPlayerIndex).validateYourTurnEnd();
+			
 			onTurnEnd();
 			for (TChar ch : characters) { 
 				ch.onTurnEnd();				
@@ -399,7 +440,10 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 				ch.onTurnStart();
 			}
 			characters.get(currentPlayerIndex).onYourTurnStart();		
-			sendToAllPlayers(TURN_START, this.getCurrentPlayer());
+			
+			Message m = new Message(TURN_START, getGameID(), getCurrentPlayer());
+			for (Player p : getPlayers()) { p.pushOutgoingMessage(m); }
+			
 		}		
 	}
 
@@ -468,7 +512,10 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			p.removeCurrentGame(getGameID());
 		}
 		
-		sendToAllPlayers(ActionList.GAME_END, result, "result", null);			
+		Message m = new Message(GAME_END, getGameID(), null);
+		m.put("result", result, null);
+		for (Player p : getPlayers()) { p.pushOutgoingMessage(m); }
+		
 		gameCacheService.uncacheGame(gameID);
 		this.shutdown();
 		return result;

@@ -29,7 +29,9 @@ public interface ActionList {
 		TURN_START = 107,
 		TURN_END = 108,
 		MAIN_PHASE = 109,
-		FORFEIT = 110;
+		FORFEIT = 110,
+		GAME_STATE = 111,
+		OBJECT_UPDATED = 112;
 	
 	// POST-LOGIN USER STUFF
 	public static final int 
