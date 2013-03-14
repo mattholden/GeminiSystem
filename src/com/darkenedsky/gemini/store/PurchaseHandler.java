@@ -115,7 +115,7 @@ public class PurchaseHandler extends AbstractStoreHandler {
 			params.put("description", item.getDetailsURL());		
 			Charge charge = Charge.create(params);
 			
-			if (charge.getFailureMessage() == null)			
+			if (charge.getFailureMessage() != null)			
 				throw new ChargeProcessingException(charge.getFailureMessage());
 			return charge;
 		}
