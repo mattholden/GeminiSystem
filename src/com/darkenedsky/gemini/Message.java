@@ -116,6 +116,9 @@ public class Message implements JSONAware, MessageSerializable {
 	public void put(String key, Long value) { 
 		put(key, Long.toString(value));
 	}
+	public void put(String key, Double value) { 
+		put(key, Double.toString(value));
+	}
 	
 	public void put(String key, Integer value) { 
 		put(key, Integer.toString(value));

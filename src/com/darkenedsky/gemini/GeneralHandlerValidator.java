@@ -25,11 +25,21 @@ public class GeneralHandlerValidator implements HandlerValidator {
 			vPhases.add(i);
 	}
 	
-
+	public void set(Boolean session, Boolean inGame, Boolean eliminated, Integer theTurnState, Integer... phazes) { 
+		requiresSession = session;
+		requiresInGame = inGame;
+		requiresEliminated = eliminated;
+		turnState = theTurnState;
+		setPhases(phazes);
+	}
+	
 	public Game<? extends GameCharacter> getGame() { return game; }
 	
 	public void setGame(Game<? extends GameCharacter> g) { 
 		game = g;
+		if (g == null) { 
+			set(REQUIRES_YES, null, null, null);
+		}
 	}
 	
 

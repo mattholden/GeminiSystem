@@ -61,6 +61,12 @@ public interface ActionList {
 		CCG_GET_STARTER_DECKS = 405,
 		CCG_GET_VALID_CARDS = 406;
 	
+	// STORE
+	public static final int
+		STORE_GETCATALOG = 500,
+		STORE_EDITCARD = 501,
+		STORE_PURCHASE = 502,
+		STORE_CANCELSUB = 503;
 	
 		
 	

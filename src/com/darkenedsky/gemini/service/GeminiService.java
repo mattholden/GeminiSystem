@@ -17,6 +17,7 @@ import com.darkenedsky.gemini.exception.GeminiException;
 import com.darkenedsky.gemini.exception.InvalidActionException;
 import com.darkenedsky.gemini.exception.JavaException;
 import com.darkenedsky.gemini.guild.GuildService;
+import com.darkenedsky.gemini.store.StoreService;
 
 /** The service that processes incoming messages, spawns Games, handles logins and other Sessions, etc.
  *  Extend this class for each game "service" (FKA projects) that you wish to run. */
@@ -54,6 +55,9 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	/** Guild service */
 	private GuildService guildService;
 	
+	/** Store service */
+	private StoreService storeService;
+	
 	/** Construct the Gemini service. 
 	 * 
 	 * @param theGameClass The class object for the specific Game subclass. Should match TGame.
@@ -72,21 +76,23 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 		gameCacheService = new GameCacheService<TGame>(theGameClass, settings, jdbc, lib);
 		addService(gameCacheService);
 		
-		addService(new AnalyticsService(jdbc));
-		
-		badgeService = new BadgeService(jdbc, lib);
-		addService(badgeService);
-		
 		// deliberately don't add the Session Manager as a service using addService(); its actions behave 
 		// differently because the user might not be logged in when interacting with them.
 		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings, gameCacheService.getWinLossRecordManager());		
 		
 		guildService = new GuildService(jdbc, sessions);
 		addService(guildService);
-		
-		sessions.setBadgeService(badgeService);
 		sessions.setGuildService(guildService);
 		
+		badgeService = new BadgeService(jdbc, lib);
+		addService(badgeService);
+		sessions.setBadgeService(badgeService);
+		
+		storeService = new StoreService(settings, jdbc);
+		addService(storeService);
+		
+		addService(new AnalyticsService(jdbc));
+				
 		LOG.debug("Gemini Service for game " + settings.getString("servicename") + " initialized OK.");		
 	}
 
