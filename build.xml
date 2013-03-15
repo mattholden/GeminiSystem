@@ -43,10 +43,23 @@
 
 	</target>
 
-	<target name="dist" depends="compile" description="generate the distribution">
+	<target name="pgdump_schema">
+  		<exec dir="." executable="cmd">
+    		<arg line="/c pgdump gemini --schema-only" />
+  		</exec>
+	</target>
+
+	<target name="pgdump_full">
+  		<exec dir="." executable="cmd">
+    		<arg line="/c pgdump gemini" />
+  		</exec>
+	</target>
+	
+	<target name="dist" depends="compile, pgdump_schema" description="generate the distribution">
 
 		<copy file="License.txt" todir="${dist}" />
 		<copy file="log4j.properties" todir="${dist}" />
+		<copy file="gemini--schema-only.sql" todir="${dist}" />
 		
 		<copy todir="${dist}">
 			<fileset dir="${build}" />
@@ -80,7 +93,7 @@
 		</javadoc>
 
 		<copy file="build.xml" todir="${dist}" />
-		<copy file="gemini.sql" todir="${dist}" />
+		<copy file="gemini--schema-only.sql" todir="${dist}" />
 		<copy file="License.txt" todir="${dist}" />
 		<copy file="log4j.properties" todir="${dist}" />
 		
