@@ -210,8 +210,14 @@ public class Message implements JSONAware, MessageSerializable {
 	}
 	
 
+	public static Message parseXMLFile(String filename) throws JDOMException, IOException {  
+		Element e = XMLTools.loadXMLFile(filename, true);
+		return new Message(e);
+	}
+
 	public static Message parseXMLFile(String filename, Class<?> clazz) throws JDOMException, IOException {  
-		URL fileURL = clazz.getClassLoader().getResource(filename);
+		URL fileURL = clazz.getClassLoader().getResource(".");
+		System.out.println(fileURL.getFile());
 		Element e = XMLTools.loadXMLFile(fileURL.getFile(), true);
 		return new Message(e);
 	}

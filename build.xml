@@ -1,0 +1,113 @@
+<project name="GeminiSystem" default="dist" basedir=".">
+	<description>
+    	 The Darkened Sky API used to build webservice-based game servers.
+    </description>
+	<!-- set global properties for this build -->
+	<property name="src" location="src" />
+	<property name="build" location="build" />
+	<property name="dist" location="dist" />
+	<property name="major-version-number" value="1.00" />
+	<buildnumber />
+	<!--
+	<property name="version-number" value="${major-version-number}.${build.number}" />
+	-->
+	<property name="version-number" value="${major-version-number}" />
+		
+	<path id="master-classpath">
+		<fileset dir="lib" id="libpath">
+			<include name="*.jar" />			
+		</fileset>
+		<fileset dir="lib/javamail" id="libpath">
+			<include name="*.jar" />			
+		</fileset>
+		<fileset dir="lib/google-gson-1.7.1" id="libpath">
+			<include name="*.jar" />			
+		</fileset>
+		
+
+	</path>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}" />
+	</target>
+
+	<target name="compile" depends="init" description="compile the source ">
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac destdir="${build}">
+			<src path="${src}" />
+			<classpath refid="master-classpath" />
+		</javac>
+
+	</target>
+
+	<target name="dist" depends="compile" description="generate the distribution">
+
+		<copy file="License.txt" todir="${dist}" />
+		<copy file="log4j.properties" todir="${dist}" />
+		
+		<copy todir="${dist}">
+			<fileset dir="${build}" />
+		</copy>
+		
+		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+		<jar jarfile="GeminiSystem-${version-number}.jar" basedir="${dist}">
+		
+			<manifest>	
+				<attribute name="Built-By" value="${builder}" />
+				<attribute name="Built-On" value="${build-info.current-date}" />
+				<attribute name="Built-At" value="${build-info.current-time}" />
+				<attribute name="Implementation-Version" value="${version-number}" />
+				<!-- don't need a classpath since tomcat will be running this...
+					<attribute name="Class-Path" value="jdom-2.0.4.jar json-simple-1.1.1.jar postgresql-9.0-801.jdbc4.jar log4j-1.2.17.jar " />
+				-->
+			</manifest>
+			
+		</jar>
+
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+		
+		<!-- build the -src jar file -->
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/lib" />
+		<mkdir dir="${dist}/src" />
+		<mkdir dir="${dist}/javadoc" />
+		<javadoc sourcepath="${src}" destdir="${dist}/javadoc" classpathref="master-classpath">
+			<package name="com.*" />
+		</javadoc>
+
+		<copy file="build.xml" todir="${dist}" />
+		<copy file="gemini.sql" todir="${dist}" />
+		<copy file="License.txt" todir="${dist}" />
+		<copy file="log4j.properties" todir="${dist}" />
+		
+		<copy todir="${dist}/src">
+			<fileset dir="${src}" />
+		</copy>
+		<copy todir="${dist}/lib">
+			<fileset dir="lib" />
+		</copy>
+
+		<jar jarfile="GeminiSystem-${version-number}-src.jar" basedir="${dist}">
+
+			<manifest>	
+				<attribute name="Built-By" value="${builder}" />
+				<attribute name="Built-On" value="${build-info.current-date}" />
+				<attribute name="Built-At" value="${build-info.current-time}" />
+				<attribute name="Implementation-Version" value="${version-number}" />
+				<!-- don't need a classpath since tomcat will be running this...
+					<attribute name="Class-Path" value="jdom-2.0.4.jar json-simple-1.1.1.jar postgresql-9.0-801.jdbc4.jar log4j-1.2.17.jar " />
+				-->
+			</manifest>
+			
+		</jar>
+		<delete dir="${dist}" />
+		
+
+		
+	</target>
+
+</project>
