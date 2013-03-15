@@ -58,6 +58,10 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	/** Store service */
 	private StoreService storeService;
 	
+	/** Send localized emails */
+	private EmailFactory emailFactory;
+	
+	 
 	/** Construct the Gemini service. 
 	 * 
 	 * @param theGameClass The class object for the specific Game subclass. Should match TGame.
@@ -73,12 +77,15 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 				
 		playerClass = thePlayerClass;	
 		jdbc = new JDBCConnection(settings.getString("database_user"), settings.getString("database_password"), settings.getString("database_path"), settings.getString("database_driver"));		
+		
+		emailFactory = new EmailFactory(settings, jdbc);
+		
 		gameCacheService = new GameCacheService<TGame>(theGameClass, settings, jdbc, lib);
 		addService(gameCacheService);
 		
 		// deliberately don't add the Session Manager as a service using addService(); its actions behave 
 		// differently because the user might not be logged in when interacting with them.
-		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings, gameCacheService.getWinLossRecordManager());		
+		sessions = new SessionManager<TPlay>(playerClass, jdbc, settings, gameCacheService.getWinLossRecordManager(), emailFactory);		
 		
 		guildService = new GuildService(jdbc, sessions);
 		addService(guildService);
@@ -88,11 +95,11 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 		addService(badgeService);
 		sessions.setBadgeService(badgeService);
 		
-		storeService = new StoreService(settings, jdbc);
+		storeService = new StoreService(settings, jdbc, emailFactory);
 		addService(storeService);
 		
 		addService(new AnalyticsService(jdbc));
-				
+		
 		LOG.debug("Gemini Service for game " + settings.getString("servicename") + " initialized OK.");		
 	}
 

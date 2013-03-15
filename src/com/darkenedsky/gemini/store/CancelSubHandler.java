@@ -3,19 +3,26 @@ package com.darkenedsky.gemini.store;
 import java.sql.PreparedStatement;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.exception.InvalidEmailTemplateException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.service.EmailFactory;
 import com.darkenedsky.gemini.service.JDBCConnection;
 import com.stripe.model.Customer;
 
 public class CancelSubHandler extends AbstractStoreHandler {
 
 	private Message theSettings;
+	private EmailFactory email;
+	private static final Logger LOG = Logger.getLogger(CancelSubHandler.class);
 	
-	public CancelSubHandler(JDBCConnection j, Message settings) {
+	public CancelSubHandler(JDBCConnection j, Message settings, EmailFactory eFac) {
 		super(j);
 		theSettings = settings;
+		email = eFac;
 	}
 
 	@Override
@@ -33,18 +40,20 @@ public class CancelSubHandler extends AbstractStoreHandler {
 		if (0 == ps.executeUpdate()) 
 			throw new SQLUpdateFailedException();
 		
-		// TODO: Send an email
-		/*
-		String textFile = theSettings.getString("cancel_subscription_email_text");
-		String htmlFile = theSettings.getString("cancel_subscription_email_html");
-		String subject = theSettings.getString("cancel_subscription_email_subject");
-		*/
 		
 		Message m = new Message(STORE_CANCELSUB);
 		m.put("playerid", p.getPlayerID());
 		m.put("timesubwillend", s.getCurrentPeriodEnd());
 		p.pushOutgoingMessage(m);
 		
+		try { 
+			HashMap<String, String> fields = new HashMap<String, String>();		
+			fields.put("%TIMESUBWILLEND%", new java.sql.Timestamp(s.getCurrentPeriodEnd()).toString());		
+			email.sendEmail(c.getEmail(), "cancelsub", p.getLanguage(), fields);
+		}
+		catch (InvalidEmailTemplateException x) { 
+			LOG.warn("Email template \"cancelsub\" missing. No confirmation email sent to user.");
+		}
 	} 
 	
 }

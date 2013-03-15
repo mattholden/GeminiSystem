@@ -2,16 +2,25 @@ package com.darkenedsky.gemini.store;
 
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.exception.InvalidEmailTemplateException;
 import com.darkenedsky.gemini.exception.RequiredFieldException;
+import com.darkenedsky.gemini.service.EmailFactory;
 import com.darkenedsky.gemini.service.JDBCConnection;
 import com.stripe.model.Customer;
 
 public class EditCardHandler extends AbstractStoreHandler {
 
-	public EditCardHandler(JDBCConnection j) {
+	private static final Logger LOG = Logger.getLogger(EditCardHandler.class);
+	
+	private EmailFactory email;
+	
+	public EditCardHandler(JDBCConnection j, EmailFactory fac) {
 		super(j);	
+		email = fac;
 	}
 
 	@Override
@@ -31,7 +40,18 @@ public class EditCardHandler extends AbstractStoreHandler {
 		params.put("card", card);
 		customer.update(params);
 		
+		Message m = new Message(STORE_EDITCARD);
+		m.put("playerid", p.getPlayerID());
+		p.pushOutgoingMessage(m);
+	
 		
+		try {
+			HashMap<String, String> fields = new HashMap<String, String>();		
+			email.sendEmail(customer.getEmail(), "updatecard", p.getLanguage(), fields);
+		}
+		catch (InvalidEmailTemplateException x) { 
+			LOG.warn("Email template \"updatecard\" missing. No confirmation email sent to user.");
+		}
 	} 
 	
 	

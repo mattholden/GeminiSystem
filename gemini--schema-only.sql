@@ -795,6 +795,43 @@ ALTER SEQUENCE ccgsetsforsubs_setforsubid_seq OWNED BY card_setsforsubs.setforsu
 
 
 --
+-- Name: email_template; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE email_template (
+    emailtemplateid integer NOT NULL,
+    templatename character varying NOT NULL,
+    language character varying NOT NULL,
+    plaintext character varying NOT NULL,
+    html character varying NOT NULL,
+    subject character varying NOT NULL
+);
+
+
+ALTER TABLE public.email_template OWNER TO postgres;
+
+--
+-- Name: email_template_emailtemplateid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE email_template_emailtemplateid_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.email_template_emailtemplateid_seq OWNER TO postgres;
+
+--
+-- Name: email_template_emailtemplateid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE email_template_emailtemplateid_seq OWNED BY email_template.emailtemplateid;
+
+
+--
 -- Name: guildinvites; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -930,7 +967,8 @@ CREATE TABLE playeraccounts (
     verifyemailexpires timestamp without time zone,
     coppa boolean,
     verifiedemail timestamp without time zone,
-    stripecustomerid character varying
+    stripecustomerid character varying,
+    admin boolean DEFAULT false NOT NULL
 );
 
 
@@ -1277,6 +1315,13 @@ ALTER TABLE ccg_decks ALTER COLUMN deckid SET DEFAULT nextval('ccgdecks_deckid_s
 
 
 --
+-- Name: emailtemplateid; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE email_template ALTER COLUMN emailtemplateid SET DEFAULT nextval('email_template_emailtemplateid_seq'::regclass);
+
+
+--
 -- Name: guildinviteid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1399,6 +1444,14 @@ ALTER TABLE ONLY card_setsforplayers
 
 ALTER TABLE ONLY card_setsforsubs
     ADD CONSTRAINT ccgsetsforsubs_pkey PRIMARY KEY (setforsubid);
+
+
+--
+-- Name: email_template_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY email_template
+    ADD CONSTRAINT email_template_pkey PRIMARY KEY (emailtemplateid);
 
 
 --
