@@ -43,6 +43,7 @@ public class JDBCConnection {
 	 */
 	public JDBCConnection(String user, String pass, String dbPath,
 			String _driver) throws SQLException, ClassNotFoundException {
+		System.out.println("SQL Driver: " + _driver);
 		Class.forName(_driver);
 		connection = DriverManager.getConnection(dbPath, user, pass);
 	}

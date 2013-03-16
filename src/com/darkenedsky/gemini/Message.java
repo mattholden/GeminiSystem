@@ -1,6 +1,7 @@
 package com.darkenedsky.gemini;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.List;
 import org.jdom2.Element;
@@ -8,7 +9,6 @@ import org.jdom2.JDOMException;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import com.darkenedsky.gemini.tools.XMLTools;
 
 public class Message implements JSONAware, MessageSerializable {
@@ -28,7 +28,15 @@ public class Message implements JSONAware, MessageSerializable {
 	 */
 	private static final long serialVersionUID = 1035947470057581125L;
 	
-	public Message (Element e) { 
+	/** If there is a constructor that takes an Element, then every project that uses a Message constructor
+	 *  needs to have the JDOM library. So, make this a static method since it's only ever called from the 
+	 *  Servlet, and then our constructors will be nice and clean
+	 *  
+	 * @param e Element to build from
+	 * @return the constructed Message
+	 */
+	public static Message getMessage(Element e) { 
+		Message m = new Message();
 		
 		for (Element x : e.getChildren()) { 
 			
@@ -38,28 +46,38 @@ public class Message implements JSONAware, MessageSerializable {
 			
 			// all the children were Objects, this must be a list
 			if (children.size() == objects.size() && !objects.isEmpty()) { 
-				addList(x.getName());
+				m.addList(x.getName());
 				for (Element y : objects) { 
-					addToList(x.getName(), new Message(y), null);
+					m.addToList(x.getName(), getMessage(y), null);
 				}
 			}
 			// if there were children and it's not a list, it must be an object
 			else if (!children.isEmpty()) { 
-				put(x.getName(), new Message(x), null);
+				m.put(x.getName(), getMessage(x), null);
 			}
 			// no children = primitive
 			else { 
-				put(x.getName(), x.getText());
+				m.put(x.getName(), x.getText());
 			}
 			
 		}
+		return m;
 	}
 	
-	public Message (JSONObject ob) { 
-		object = ob;
+	/** If there is a constructor that takes a JSONObject then every project that uses a Message constructor
+	 *  needs to have the JSON library. So, make this a static method since it's only ever called from the 
+	 *  Servlet, and then our constructors will be nice and clean
+	 *  
+	 * @param ob JSONObject to build from
+	 * @return the constructed Message
+	 */
+	public static Message getMessage(JSONObject ob) { 
+		Message m = new Message();
+		m.object = ob;
+		return m;
 	}
 	
-	public Message(String json) throws ParseException { 
+	public Message(String json) throws Exception { 
 		  JSONParser parser = new JSONParser();
 	        Object o = parser.parse(json);
 	        object = (JSONObject) o;
@@ -156,8 +174,8 @@ public class Message implements JSONAware, MessageSerializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<JSONObject> getJSONList(String key) { 
-		return (List<JSONObject>)object.get(key);
+	public List<HashMap<String, Object>> getJSONList(String key) { 
+		return (List<HashMap<String, Object>>)object.get(key);
 	}
 	
 	@Override
@@ -210,19 +228,18 @@ public class Message implements JSONAware, MessageSerializable {
 	}
 	
 
-	public static Message parseXMLFile(String filename) throws JDOMException, IOException {  
+	public static Message parseXMLFile(String filename) throws Exception {  
 		Element e = XMLTools.loadXMLFile(filename, true);
-		return new Message(e);
+		return getMessage(e);
 	}
 
 	public static Message parseXMLFile(String filename, Class<?> clazz) throws JDOMException, IOException {  
 		URL fileURL = clazz.getClassLoader().getResource(".");
 		System.out.println(fileURL.getFile());
 		Element e = XMLTools.loadXMLFile(fileURL.getFile(), true);
-		return new Message(e);
+		return getMessage(e);
 	}
-	
-	
+		
 		
 }
 

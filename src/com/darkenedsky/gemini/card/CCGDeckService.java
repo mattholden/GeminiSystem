@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import org.json.simple.JSONObject;
 import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.LibrarySection;
@@ -162,8 +161,8 @@ public class CCGDeckService<TCard extends Card> extends Service {
 	private final Vector<CCGDeckValidationException> validate(Message m, Player p) throws Exception { 
 	
 		Map<Integer, Integer> cardCount = new HashMap<Integer, Integer>(20);
-		List<JSONObject> cards = m.getJSONList("cards");
-		for (JSONObject card : cards) {
+		List<HashMap<String, Object>> cards = m.getJSONList("cards");
+		for (HashMap<String, Object> card : cards) {
 			Integer cardid = (Integer)(card.get("definitionid"));			
 			
 			Integer count = cardCount.get(cardid);
@@ -210,7 +209,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 
 			jdbc.setAutoCommit(false);
 
-			List<JSONObject> cards = m.getJSONList("cards");
+			List<HashMap<String, Object>> cards = m.getJSONList("cards");
 			Message reply = new Message(CCG_EDIT_DECK);
 			reply.put("deckid", deckid);
 			if (name != null) {
@@ -240,7 +239,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 				ps2.setInt(3, serviceID);
 				ps2.executeUpdate();
 
-				for (JSONObject card : cards) {
+				for (HashMap<String, Object> card : cards) {
 					PreparedStatement psc = jdbc.prepareStatement("insert into ccg_deckcards (deckid, definitionid, qty) values (?,?,?);");
 					psc.setLong(1, deckid);
 					psc.setLong(2, (Long)card.get("definitionid"));

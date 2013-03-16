@@ -3,7 +3,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Vector;
 
+import javax.servlet.ServletContext;
+
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Game;
@@ -64,6 +67,7 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	 
 	/** Construct the Gemini service. 
 	 * 
+	 * @param context the servlet context we're firing up in
 	 * @param theGameClass The class object for the specific Game subclass. Should match TGame.
 	 * @param thePlayerClass  The class object for the specific Player subclass. Should match TPlay.
 	 * @param lib the library of static game object definitions. Should be defined in the Servlet.
@@ -73,7 +77,7 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public GeminiService(Class<TGame> theGameClass, Class<TPlay> thePlayerClass, Library lib, Message settings) throws SQLException, ClassNotFoundException, IOException, Exception { 
+	public GeminiService(ServletContext context, Class<TGame> theGameClass, Class<TPlay> thePlayerClass, Library lib, Message settings) throws SQLException, ClassNotFoundException, IOException, Exception { 
 				
 		playerClass = thePlayerClass;	
 		jdbc = new JDBCConnection(settings.getString("database_user"), settings.getString("database_password"), settings.getString("database_path"), settings.getString("database_driver"));		

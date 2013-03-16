@@ -9,6 +9,7 @@ import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.service.GeminiService;
 import com.darkenedsky.gemini.tools.XMLTools;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -30,10 +31,10 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 	private static Logger LOG = Logger.getLogger(GeminiServlet.class);
 	
 	@Override
-	public abstract void init();
+	public abstract void init(ServletConfig config);
 	
 	@Override
-	public void destroy() {
+	public void destroy() {		
 		try { 
 			LOG.debug("Shutting down Servlet [" + getClass().getName() + "]...");
 			service.shutdown();
@@ -106,7 +107,7 @@ public abstract class GeminiServlet<TChar extends GameCharacter, TPlay extends P
 				LOG.debug(m);
 				Element e = XMLTools.stringToXML(m);
 				e.addContent(XMLTools.xml(Message.SESSION_IPADDRESS, req.getRemoteAddr()));
-				Message msg = new Message(e);				
+				Message msg = Message.getMessage(e);				
 				Vector<Message> replies = (service.processMessage(msg));
 				Element reply = new Element("messages");
 				for (Message mx : replies) { 

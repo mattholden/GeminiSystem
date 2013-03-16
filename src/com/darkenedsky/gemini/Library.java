@@ -22,8 +22,8 @@ public class Library implements MessageSerializable {
 	}
 
 	public LibrarySection addSection(String name) {
-		if (getSection(name) != null) 
-			return getSection(name);
+		if (sections.get(name) != null) 
+			return sections.get(name);
 		
 		LibrarySection ls = new LibrarySection();
 		sections.put(name, ls);
