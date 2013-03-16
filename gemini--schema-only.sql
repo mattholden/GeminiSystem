@@ -411,6 +411,38 @@ CREATE FUNCTION password_strength_check(ppassword character varying) RETURNS voi
 
 ALTER FUNCTION public.password_strength_check(ppassword character varying) OWNER TO postgres;
 
+--
+-- Name: record_purchase(integer, bigint, character varying, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION record_purchase(pstoreitemid integer, pplayerid bigint, pip character varying, ppromoid integer, price integer, pchargeid character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+
+  declare	
+	vsubid integer;
+	vsetid integer;
+	
+  begin
+	-- record the purchase
+	insert into storepurchases(storeitemid, playerid, purchasedfromip, promoid, purchasedate, stripeinvoice, pricecents) values (pstoreitemid, pplayerid, pip, ppromoid, now(), pchargeid, price);
+	
+	-- gain what you bought
+	select into vsubid subscriptionid from storeitems where storeitemid = pstoreitemid;
+	select into vsetid setid from storeitems where storeitemid = pstoreitemid;
+
+	if (subid is not null) then 
+		update playeraccounts set subscriptionid = vsubid where playerid = pplayerid;
+	end if;
+	if (setid is not null) then
+		insert into card_setsforplayers(setid, playerid) values (vsetid, pplayerid);
+	end if;
+end;
+ $$;
+
+
+ALTER FUNCTION public.record_purchase(pstoreitemid integer, pplayerid bigint, pip character varying, ppromoid integer, price integer, pchargeid character varying) OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -641,7 +673,6 @@ ALTER SEQUENCE card_sets_setid_seq OWNED BY card_sets.setid;
 CREATE TABLE card_setsforplayers (
     setforplayerid bigint NOT NULL,
     playerid bigint,
-    availableuntil timestamp without time zone,
     setid integer NOT NULL
 );
 
@@ -795,10 +826,10 @@ ALTER SEQUENCE ccgsetsforsubs_setforsubid_seq OWNED BY card_setsforsubs.setforsu
 
 
 --
--- Name: email_template; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: email_templates; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
-CREATE TABLE email_template (
+CREATE TABLE email_templates (
     emailtemplateid integer NOT NULL,
     templatename character varying NOT NULL,
     language character varying NOT NULL,
@@ -808,7 +839,7 @@ CREATE TABLE email_template (
 );
 
 
-ALTER TABLE public.email_template OWNER TO postgres;
+ALTER TABLE public.email_templates OWNER TO postgres;
 
 --
 -- Name: email_template_emailtemplateid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -828,7 +859,7 @@ ALTER TABLE public.email_template_emailtemplateid_seq OWNER TO postgres;
 -- Name: email_template_emailtemplateid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE email_template_emailtemplateid_seq OWNED BY email_template.emailtemplateid;
+ALTER SEQUENCE email_template_emailtemplateid_seq OWNED BY email_templates.emailtemplateid;
 
 
 --
@@ -1318,7 +1349,7 @@ ALTER TABLE ccg_decks ALTER COLUMN deckid SET DEFAULT nextval('ccgdecks_deckid_s
 -- Name: emailtemplateid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE email_template ALTER COLUMN emailtemplateid SET DEFAULT nextval('email_template_emailtemplateid_seq'::regclass);
+ALTER TABLE email_templates ALTER COLUMN emailtemplateid SET DEFAULT nextval('email_template_emailtemplateid_seq'::regclass);
 
 
 --
@@ -1450,7 +1481,7 @@ ALTER TABLE ONLY card_setsforsubs
 -- Name: email_template_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
-ALTER TABLE ONLY email_template
+ALTER TABLE ONLY email_templates
     ADD CONSTRAINT email_template_pkey PRIMARY KEY (emailtemplateid);
 
 
