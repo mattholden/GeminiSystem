@@ -196,6 +196,66 @@ CREATE FUNCTION create_account(pusername character varying, ppassword character 
 
 ALTER FUNCTION public.create_account(pusername character varying, ppassword character varying, ppassword2 character varying, pemail character varying, pcoppa boolean, pip character varying, pclient character varying, pgender integer, planguage character varying) OWNER TO postgres;
 
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: guilds; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE guilds (
+    guildid bigint NOT NULL,
+    name character varying NOT NULL,
+    charter character varying,
+    website character varying,
+    founder bigint NOT NULL,
+    datefounded timestamp without time zone DEFAULT now() NOT NULL,
+    openenrollment boolean DEFAULT false NOT NULL,
+    minrank_invite integer DEFAULT 0 NOT NULL,
+    minrank_kick integer DEFAULT 0 NOT NULL,
+    minrank_edit integer DEFAULT 0 NOT NULL,
+    rank0title character varying DEFAULT 'Founder'::character varying NOT NULL,
+    rank1title character varying DEFAULT 'Lieutenant General'::character varying NOT NULL,
+    rank2title character varying DEFAULT 'Major General'::character varying NOT NULL,
+    rank3title character varying DEFAULT 'Brigadier General'::character varying NOT NULL,
+    rank4title character varying DEFAULT 'Colonel'::character varying NOT NULL,
+    rank5title character varying DEFAULT 'Lt. Colonel'::character varying NOT NULL,
+    rank6title character varying DEFAULT 'Major'::character varying NOT NULL,
+    rank7title character varying DEFAULT 'Captain'::character varying NOT NULL,
+    rank8title character varying DEFAULT '1st Lieutenant'::character varying NOT NULL,
+    rank9title character varying DEFAULT '2nd Lieutenant'::character varying NOT NULL,
+    minrank_promote integer DEFAULT 0 NOT NULL,
+    minrank_chat integer DEFAULT 9 NOT NULL,
+    minrank_editpermissions integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.guilds OWNER TO postgres;
+
+--
+-- Name: create_guild(bigint, character varying); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION create_guild(pplayerid bigint, pname character varying) RETURNS SETOF guilds
+    LANGUAGE plpgsql
+    AS $$
+
+  declare	
+	vguildid bigint;
+
+  begin
+	insert into guilds (name, founder) values (pname, pplayerid);
+	select into vguildid max(guildid) from guilds where founder = pplayerid and name = pname;
+	update players set guildid = vguildid, guildrank = 0 where playerid = pplayerid;
+	return query select * from guilds where guildid = vguildid;
+
+end;
+ $$;
+
+
+ALTER FUNCTION public.create_guild(pplayerid bigint, pname character varying) OWNER TO postgres;
+
 --
 -- Name: encrypt(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -442,10 +502,6 @@ end;
 
 
 ALTER FUNCTION public.record_purchase(pstoreitemid integer, pplayerid bigint, pip character varying, ppromoid integer, price integer, pchargeid character varying) OWNER TO postgres;
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
 
 --
 -- Name: winlossrecords; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
@@ -899,60 +955,6 @@ ALTER SEQUENCE guildinvites_guildinviteid_seq OWNED BY guildinvites.guildinvitei
 
 
 --
--- Name: guildranks; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE guildranks (
-    guildrankid bigint NOT NULL,
-    guildid bigint NOT NULL,
-    ranktitle character varying NOT NULL,
-    caninvite boolean DEFAULT false NOT NULL,
-    cankicklowerrank boolean DEFAULT false NOT NULL,
-    canedit boolean DEFAULT false NOT NULL,
-    ranklevel integer NOT NULL
-);
-
-
-ALTER TABLE public.guildranks OWNER TO postgres;
-
---
--- Name: guildranks_guildrankid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE guildranks_guildrankid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.guildranks_guildrankid_seq OWNER TO postgres;
-
---
--- Name: guildranks_guildrankid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE guildranks_guildrankid_seq OWNED BY guildranks.guildrankid;
-
-
---
--- Name: guilds; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE guilds (
-    guildid bigint NOT NULL,
-    name character varying NOT NULL,
-    charter character varying,
-    website character varying,
-    founder bigint NOT NULL,
-    datefounded timestamp without time zone DEFAULT now() NOT NULL
-);
-
-
-ALTER TABLE public.guilds OWNER TO postgres;
-
---
 -- Name: guilds_guildid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -1071,7 +1073,7 @@ CREATE TABLE players (
     language character varying DEFAULT 'en'::character varying NOT NULL,
     gender integer DEFAULT 1 NOT NULL,
     guildid bigint,
-    guildrankid bigint
+    guildrank integer
 );
 
 
@@ -1360,13 +1362,6 @@ ALTER TABLE guildinvites ALTER COLUMN guildinviteid SET DEFAULT nextval('guildin
 
 
 --
--- Name: guildrankid; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE guildranks ALTER COLUMN guildrankid SET DEFAULT nextval('guildranks_guildrankid_seq'::regclass);
-
-
---
 -- Name: guildid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1491,14 +1486,6 @@ ALTER TABLE ONLY email_templates
 
 ALTER TABLE ONLY guildinvites
     ADD CONSTRAINT guildinvites_pkey PRIMARY KEY (guildinviteid);
-
-
---
--- Name: guildranks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
---
-
-ALTER TABLE ONLY guildranks
-    ADD CONSTRAINT guildranks_pkey PRIMARY KEY (guildrankid);
 
 
 --
@@ -1686,14 +1673,6 @@ ALTER TABLE ONLY guildinvites
 
 
 --
--- Name: guildranks_guildid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY guildranks
-    ADD CONSTRAINT guildranks_guildid_fkey FOREIGN KEY (guildid) REFERENCES guilds(guildid);
-
-
---
 -- Name: guilds_founder_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1731,14 +1710,6 @@ ALTER TABLE ONLY playerbadges
 
 ALTER TABLE ONLY players
     ADD CONSTRAINT players_guildid_fkey FOREIGN KEY (guildid) REFERENCES guilds(guildid);
-
-
---
--- Name: players_guildrankid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY players
-    ADD CONSTRAINT players_guildrankid_fkey FOREIGN KEY (guildrankid) REFERENCES guildranks(guildrankid);
 
 
 --
