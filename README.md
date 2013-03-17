@@ -17,6 +17,7 @@ Features include:
 - One user account works with mulitple games running in the same environment
 - Supports XML or JSON web requests over HTTPS
   
-The Gemini Gaming System is provided free of charge by Darkened Sky Studios (www.DarkenedSky.com).
+The Gemini Gaming System is provided free under the MIT License by Matt Holden (www.mattholden.com) and 
+Darkened Sky Studios (www.DarkenedSky.com).
 
 For more information, see www.GeminiGamingSystem.com.
