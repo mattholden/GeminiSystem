@@ -3,6 +3,8 @@ GeminiSystem
 Gemini is an MIT-licensed, Java/PostgreSQL-based game engine that runs over a web servlet. 
 Includes full CCG engine, store, guilds, achievements, and more. 
 Release target for 1.0 is Fall 2013.
+THIS PROJECT IS STILL UNDER ACTIVE DEVELOPMENT AND IS IN NO WAY STABLE YET.
+If you check out and use this code, DO SO AT YOUR OWN RISK.
 
 Features include:
 - Collectible card game shell library (more game types coming soon)
