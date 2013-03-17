@@ -14,8 +14,10 @@ public class GetGuildHandler extends Handler {
 	
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
-		Guild g = service.getGuild(e.getLong("guildid"));
+		Long guildid = e.getRequiredLong("guildid");
+		Guild g = service.getGuild(guildid);
 		Message m = new Message(ActionList.GUILD_GET);
+		m.put("guildid", g.getGuildID());
 		m.put("guild", g, p);
 		p.pushOutgoingMessage(m);
 	}

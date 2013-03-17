@@ -9,6 +9,8 @@ import org.jdom2.JDOMException;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
+import com.darkenedsky.gemini.exception.RequiredFieldException;
 import com.darkenedsky.gemini.tools.XMLTools;
 
 public class Message implements JSONAware, MessageSerializable {
@@ -166,6 +168,27 @@ public class Message implements JSONAware, MessageSerializable {
 		Object s = object.get(key);
 		if (s == null) return null;
 		return s.toString();
+	}
+	
+	public Boolean getRequiredBoolean(String key) throws RequiredFieldException { 
+		Boolean val = getBoolean(key);
+		if (val == null) throw new RequiredFieldException(key);
+		return val;
+	}
+	public Integer getRequiredInt(String key) throws RequiredFieldException { 
+		Integer val = getInt(key);
+		if (val == null) throw new RequiredFieldException(key);
+		return val;
+	}
+	public Long getRequiredLong(String key) throws RequiredFieldException { 
+		Long val = getLong(key);
+		if (val == null) throw new RequiredFieldException(key);
+		return val;
+	}
+	public String getRequiredString(String key) throws RequiredFieldException { 
+		String val = getString(key);
+		if (val == null) throw new RequiredFieldException(key);
+		return val;
 	}
 	
 	@SuppressWarnings("unchecked")

@@ -6,7 +6,6 @@ import java.util.Vector;
 import javax.servlet.ServletContext;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Game;

@@ -49,7 +49,16 @@ public interface ActionList {
 		
 		GUILD_CREATE = 350,
 		GUILD_CHAT = 351,
-		GUILD_GET = 352;
+		GUILD_GET = 352,
+		GUILD_GET_MEMBERS_ONLINE = 353,
+		GUILD_LEAVE = 354,
+		GUILD_JOIN = 355,
+		GUILD_INVITE = 356,
+		GUILD_DECLINE = 357,
+		GUILD_KICK = 358,
+		GUILD_SETRANK = 359,
+		GUILD_EDIT = 360;
+	
 	
 	// card games / ccgs
 	public static final int 

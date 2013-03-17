@@ -18,7 +18,8 @@ public class Player implements MessageSerializable, Gender {
 	private String username;
 	private String language = "en";
 	private int gender = Gender.GENDER_UNDISCLOSED;
-	private Long guildID, guildRankID;	
+	private Long guildID;
+	private Integer guildRank = null;
 	private Vector<Badge> badges = new Vector<Badge>();
 	private Vector<Long> currentGameIDs = new Vector<Long>();
 	private Vector<Message> outgoingMessages = new Vector<Message>();
@@ -34,7 +35,11 @@ public class Player implements MessageSerializable, Gender {
 		playerID = set.getLong("playerid");
 		gender = set.getInt("gender");
 		guildID = set.getLong("guildid");
-		guildRankID = set.getLong("guildrankid");
+		if (set.wasNull())
+			guildID = null;
+		guildRank = set.getInt("guildrank");
+		if (set.wasNull())
+			guildRank = null;
 		
 	}
 	
@@ -118,12 +123,12 @@ public class Player implements MessageSerializable, Gender {
 		this.guildID = guildID;
 	}
 
-	public Long getGuildRankID() {
-		return guildRankID;
+	public Integer getGuildRank() {
+		return guildRank;
 	}
 
-	public void setGuildRankID(Long guildRankID) {
-		this.guildRankID = guildRankID;
+	public void setGuildRank(Integer grank) {
+		this.guildRank = grank;
 	}
 
 	@Override
@@ -138,7 +143,7 @@ public class Player implements MessageSerializable, Gender {
 		if (guild != null) {
 			Message mguild = new Message();
 			mguild.put("guildid", guildID);
-			mguild.put("guildrankid", guildRankID);
+			mguild.put("guildrank", guildRank);
 			mguild.put("name", guild.getName());
 			m.put("guild", mguild, p);
 		}

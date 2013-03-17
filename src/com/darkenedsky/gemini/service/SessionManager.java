@@ -17,6 +17,7 @@ import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.badge.BadgeService;
 import com.darkenedsky.gemini.exception.InvalidEmailTemplateException;
 import com.darkenedsky.gemini.exception.InvalidLoginException;
+import com.darkenedsky.gemini.exception.InvalidPlayerException;
 import com.darkenedsky.gemini.exception.InvalidSessionException;
 import com.darkenedsky.gemini.guild.GuildService;
 import com.darkenedsky.gemini.tools.FileTools;
@@ -79,6 +80,40 @@ public class SessionManager<TPlay extends Player> implements ActionList {
 	}
 	public void setGuildService(GuildService g) { 
 		guildService = g;
+	}
+	
+	public TPlay getSession(long playerid) throws InvalidSessionException { 
+		for (TPlay play : sessions.values()) { 
+			if (play.getPlayerID() == playerid)
+				return play;
+		}
+		throw new InvalidPlayerException(playerid);
+	}
+	
+	/** Load the player from the database
+	 *  @param playerid ID to load
+	 */
+	public Player loadPlayerFromDatabase(long playerid) throws Exception { 
+		Player player;
+		PreparedStatement kick = jdbc.prepareStatement("select * from players where playerid = ?;");
+		kick.setLong(1, playerid);
+		ResultSet kickset = null;
+		try {
+			kickset = kick.executeQuery();
+			if (kickset.first()) { 
+				player = new Player(kickset);
+				kickset.close();
+				return player;
+			}
+			else { 
+				throw new InvalidPlayerException(playerid);
+			}
+		}
+		catch (Exception y) { 
+			if (kickset != null)
+				kickset.close();
+			throw y;
+		}
 	}
 	
 	/** Get the session for a token presented from an incoming client message.

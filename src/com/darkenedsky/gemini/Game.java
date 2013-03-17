@@ -86,6 +86,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			public void processMessage(Message m, Player p) throws Exception  { 
 				Message sending = new Message(CHAT, game.getGameID(), p.getPlayerID());
 				sending.put("message", m.getString("message"));
+				sending.put("playerid", p.getPlayerID());
+				sending.put("username", p.getUsername());
+
 				for (Player play : players) { 
 					play.pushOutgoingMessage(sending);
 				}
@@ -100,7 +103,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			public void processMessage(Message m, Player p)  throws Exception { 
 				long pid = m.getLong("targetplayerid");
 				Message sending = new Message(WHISPER, game.getGameID(), p.getPlayerID());
-				sending.put("message", m.getString("message"));				
+				sending.put("message", m.getString("message"));
+				sending.put("playerid", p.getPlayerID());
+				sending.put("username", p.getUsername());
 				game.getPlayer(pid).pushOutgoingMessage(sending);			
 			}
 		};
