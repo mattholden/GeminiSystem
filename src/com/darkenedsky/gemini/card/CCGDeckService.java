@@ -133,13 +133,16 @@ public class CCGDeckService<TCard extends Card> extends Service {
 	
 		// get a list of all the cards you can access
 		HashMap<Integer, CCGCard> legalCards = new HashMap<Integer, CCGCard>(200);
-		PreparedStatement ps = jdbc.prepareStatement("select * from ccg_get_usable_cards(?,?);");
+		PreparedStatement ps = jdbc.prepareStatement("select * from ccg_get_usable_sets(?,?);");
 		ps.setLong(1, p.getPlayerID());
 		ps.setInt(2, serviceID);
 		ResultSet set = ps.executeQuery();
 		if (set.first()) {
 			while (true) {
-				legalCards.put(set.getInt("cardid"), (CCGCard)library.getSection("cards").get(set.getInt("cardid")));
+				@SuppressWarnings("unchecked")
+				CardSet<CCGCard> cardSet = (CardSet<CCGCard>)library.getSection("sets").get(set.getInt("setid"));
+				for (CCGCard card : cardSet.getCards()) 
+					legalCards.put(card.getDefinitionID(), card);
 				if (set.isLast()) break;
 				set.next();
 			}

@@ -20,6 +20,8 @@ public class CardSet<TCard extends Card> extends GameObject {
 		cards.add(card);
 	}
 	
+	public Vector<TCard> getCards() { return cards; }
+	
 	public void addToLibrary(Library lib) { 
 		lib.getSection("sets").add(this);
 		

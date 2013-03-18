@@ -121,22 +121,22 @@ CREATE FUNCTION ccg_get_sets(pplayerid bigint) RETURNS SETOF integer
 ALTER FUNCTION public.ccg_get_sets(pplayerid bigint) OWNER TO postgres;
 
 --
--- Name: ccg_get_usable_cards(bigint, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: ccg_get_usable_sets(bigint, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION ccg_get_usable_cards(pplayerid bigint, pserviceid integer) RETURNS SETOF bigint
+CREATE FUNCTION ccg_get_usable_sets(pplayerid bigint, pserviceid integer) RETURNS SETOF integer
     LANGUAGE plpgsql
     AS $$
 
   begin
-	return query select distinct definitionid from card_in_set where 
+	return query select distinct setid from card_sets where 
 	(setid in (select setid from card_setsforplayers where playerid = pplayerid) or setid in (select setid from card_setsforsubs where subscriptionid = 
-	(select subscriptionid from playeraccounts where playerid = pplayerid))) and setid in (select setid from card_sets where serviceid = pserviceid);
+	(select subscriptionid from playeraccounts where playerid = pplayerid))) and serviceid = pserviceid;
 end;
  $$;
 
 
-ALTER FUNCTION public.ccg_get_usable_cards(pplayerid bigint, pserviceid integer) OWNER TO postgres;
+ALTER FUNCTION public.ccg_get_usable_sets(pplayerid bigint, pserviceid integer) OWNER TO postgres;
 
 --
 -- Name: create_account(character varying, character varying, character varying, character varying, boolean, character varying, character varying, integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
@@ -414,6 +414,7 @@ CREATE FUNCTION log_in(pusername character varying, ppassword character varying,
 	-- successful login
 	select maketoken(player_id) into token;
 	update playeraccounts set banneduntil = null, banreason = null, lastlogintime = now(), lastloginip = pip, badpassattempts = 0, lastloginclient = pclient, forgotpasstoken = null, forgotpassexpires = null, sessiontoken = token where playerid = player_id;
+	insert into session_analytics(playerid) values (player_id);
 	return token;
   end;
  $$;
@@ -653,40 +654,6 @@ ALTER SEQUENCE bannedip_bannedipid_seq OWNED BY bannedip.bannedipid;
 
 
 --
--- Name: card_in_set; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE card_in_set (
-    definitionid integer NOT NULL,
-    setid integer NOT NULL,
-    cardinsetid bigint NOT NULL
-);
-
-
-ALTER TABLE public.card_in_set OWNER TO postgres;
-
---
--- Name: card_in_set_cardinsetid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE card_in_set_cardinsetid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.card_in_set_cardinsetid_seq OWNER TO postgres;
-
---
--- Name: card_in_set_cardinsetid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE card_in_set_cardinsetid_seq OWNED BY card_in_set.cardinsetid;
-
-
---
 -- Name: card_sets; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -747,27 +714,6 @@ CREATE TABLE card_setsforsubs (
 
 
 ALTER TABLE public.card_setsforsubs OWNER TO postgres;
-
---
--- Name: cards_in_set_cardid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE cards_in_set_cardid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.cards_in_set_cardid_seq OWNER TO postgres;
-
---
--- Name: cards_in_set_cardid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE cards_in_set_cardid_seq OWNED BY card_in_set.definitionid;
-
 
 --
 -- Name: ccg_deckcards; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
@@ -1150,6 +1096,40 @@ ALTER SEQUENCE services_serviceid_seq OWNED BY services.serviceid;
 
 
 --
+-- Name: session_analytics; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE session_analytics (
+    loginid bigint NOT NULL,
+    playerid bigint NOT NULL,
+    logintime timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.session_analytics OWNER TO postgres;
+
+--
+-- Name: session_analytics_loginid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE session_analytics_loginid_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.session_analytics_loginid_seq OWNER TO postgres;
+
+--
+-- Name: session_analytics_loginid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE session_analytics_loginid_seq OWNED BY session_analytics.loginid;
+
+
+--
 -- Name: storecatalog; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1306,13 +1286,6 @@ ALTER TABLE bannedip ALTER COLUMN bannedipid SET DEFAULT nextval('bannedip_banne
 
 
 --
--- Name: cardinsetid; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE card_in_set ALTER COLUMN cardinsetid SET DEFAULT nextval('card_in_set_cardinsetid_seq'::regclass);
-
-
---
 -- Name: setid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1397,6 +1370,13 @@ ALTER TABLE services ALTER COLUMN serviceid SET DEFAULT nextval('services_servic
 
 
 --
+-- Name: loginid; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE session_analytics ALTER COLUMN loginid SET DEFAULT nextval('session_analytics_loginid_seq'::regclass);
+
+
+--
 -- Name: storecatalogid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1422,14 +1402,6 @@ ALTER TABLE subscriptions ALTER COLUMN subscriptionid SET DEFAULT nextval('subsc
 --
 
 ALTER TABLE winlossrecords ALTER COLUMN winlossrecordid SET DEFAULT nextval('winlossrecords_winlossrecordid_seq'::regclass);
-
-
---
--- Name: card_in_set_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
---
-
-ALTER TABLE ONLY card_in_set
-    ADD CONSTRAINT card_in_set_pkey PRIMARY KEY (cardinsetid);
 
 
 --
@@ -1537,6 +1509,14 @@ ALTER TABLE ONLY services
 
 
 --
+-- Name: session_analytics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY session_analytics
+    ADD CONSTRAINT session_analytics_pkey PRIMARY KEY (loginid);
+
+
+--
 -- Name: storecatalog_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1598,14 +1578,6 @@ ALTER TABLE ONLY card_setsforplayers
 
 ALTER TABLE ONLY card_setsforsubs
     ADD CONSTRAINT card_setsforsubs_setid_fkey FOREIGN KEY (setid) REFERENCES card_sets(setid);
-
-
---
--- Name: cards_in_set_setid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY card_in_set
-    ADD CONSTRAINT cards_in_set_setid_fkey FOREIGN KEY (setid) REFERENCES card_sets(setid);
 
 
 --
@@ -1718,6 +1690,14 @@ ALTER TABLE ONLY players
 
 ALTER TABLE ONLY promocodes
     ADD CONSTRAINT promocodes_storeitemid_fkey FOREIGN KEY (storeitemid) REFERENCES storeitems(storeitemid);
+
+
+--
+-- Name: session_analytics_playerid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY session_analytics
+    ADD CONSTRAINT session_analytics_playerid_fkey FOREIGN KEY (playerid) REFERENCES players(playerid);
 
 
 --
