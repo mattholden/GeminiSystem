@@ -83,8 +83,8 @@ public class Statistic extends LocalizedObject {
 	public int getBaseValue() {
 		return cap(baseValue);
 	}
-
-	public void incrementBase(int val) { 
+	
+	public void incrementBaseValue(int val) { 
 		baseValue += val;
 	}
 	

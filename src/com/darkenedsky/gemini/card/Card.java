@@ -25,7 +25,7 @@ public abstract class Card extends GameObjectWithStats {
 	protected HashMap<String, String> rulesText = new HashMap<String, String>();
 	protected HashMap<String, String> flavorText = new HashMap<String, String>();
 
-	private static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start", COUNTERS = "counters";
+	public static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start", COUNTERS = "counters";
 	
 	public Card(int defID, int type, Long objID, Long ownerID, String englishName) {
 		super(defID, objID, englishName);		
@@ -41,13 +41,17 @@ public abstract class Card extends GameObjectWithStats {
 		cardType = type;
 	}
 
+	public boolean isFriendlyTo(long playerid) { 
+		return (playerid == controller);
+	}
+	
 	public void onDrawn() throws Exception { /* Deliberately blank */}
 	public void onDiscarded() throws Exception { /* Deliberately blank */ }
 	
 	public void onTurnStart() throws Exception { expireBonuses(Bonus.START_OF_NEXT_TURN); } 
 	public void onTurnEnd() throws Exception { expireBonuses(Bonus.END_OF_THIS_TURN);  } 
 	public void onControllerTurnStart() throws Exception { 
-		if (getStat(UNTAPS_AT_TURN_START).getValueWithBonuses() > 0)
+		if (getStatValue(UNTAPS_AT_TURN_START) > 0)
 			setTapped(false);
 		expireBonuses(Bonus.START_OF_YOUR_NEXT_TURN); 
 	} 
