@@ -31,7 +31,8 @@ public interface ActionList {
 		MAIN_PHASE = 109,
 		FORFEIT = 110,
 		GAME_STATE = 111,
-		OBJECT_UPDATED = 112;
+		OBJECT_UPDATED = 112,
+		CHARACTER_UPDATED = 113;
 	
 	// POST-LOGIN USER STUFF
 	public static final int 

@@ -1,5 +1,6 @@
 package com.darkenedsky.gemini;
 
+
 public  class GameObject extends LocalizedObject implements Comparable<GameObject>, MessageSerializable {
 
 	/**
@@ -57,4 +58,5 @@ public  class GameObject extends LocalizedObject implements Comparable<GameObjec
 		m.put("id", getObjectID());
 		return m;
 	}
+
 }

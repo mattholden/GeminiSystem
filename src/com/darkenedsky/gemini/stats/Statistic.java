@@ -29,7 +29,7 @@ public class Statistic extends LocalizedObject {
 		ALWAYS_VISIBLE = new StatVisibility(2);
 	
 	private StatVisibility visibility = ALWAYS_VISIBLE;
-	
+
 	public Statistic(String enName) { 
 		this(enName, 0, ALWAYS_VISIBLE);
 	}
@@ -64,9 +64,13 @@ public class Statistic extends LocalizedObject {
 	}
 		
 	public int getValueWithBonuses() { 
+		return getConditionalValue(null);
+	}
+	
+	public int getConditionalValue(String conditional) { 
 		int total = baseValue;
 		for (Bonus b : getBonuses()) { 
-			if (!b.isConditional())
+			if (!b.isConditional() || b.getConditional().equalsIgnoreCase(conditional))
 				total = b.modify(total);
 		}
 		return cap(total);

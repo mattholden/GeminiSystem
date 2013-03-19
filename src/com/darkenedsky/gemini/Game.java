@@ -526,5 +526,25 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		return result;
 	}
 
+	public void observeCharacterUpdated(TChar chr) throws Exception { 
+		for (Player p : getPlayers()) { 
+			Message m = new Message(ActionList.CHARACTER_UPDATED, getGameID(), getCurrentPlayer());
+			Message mObj = chr.serialize(p);
+			if (mObj == null) continue;
+			m.put("updated", mObj, p);
+			p.pushOutgoingMessage(m);		
+		}
+	}
+	
+	public void observeObjectUpdated(GameObject obj) throws Exception { 
+		for (Player p : getPlayers()) { 
+			Message m = new Message(ActionList.OBJECT_UPDATED, getGameID(), getCurrentPlayer());
+			Message mObj = obj.serialize(p);
+			if (mObj == null) continue;
+			m.put("updated", mObj, p);
+			p.pushOutgoingMessage(m);		
+		}
+	}
+	
 	
 }
