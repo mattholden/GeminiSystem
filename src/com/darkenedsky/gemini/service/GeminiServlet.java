@@ -1,6 +1,13 @@
 package com.darkenedsky.gemini.service;
 import java.io.IOException;
 import java.util.Vector;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.GameCharacter;
@@ -9,11 +16,6 @@ import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.service.GeminiService;
 import com.darkenedsky.gemini.tools.XMLTools;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.jdom2.Element;
