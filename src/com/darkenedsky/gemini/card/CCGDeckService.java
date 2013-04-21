@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.LibrarySection;
 import com.darkenedsky.gemini.Message;
@@ -19,6 +18,7 @@ import com.darkenedsky.gemini.exception.CCGDeckValidationException;
 import com.darkenedsky.gemini.exception.CCGInvalidDeckException;
 import com.darkenedsky.gemini.exception.GeminiException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.handler.Handler;
 import com.darkenedsky.gemini.service.JDBCConnection;
 import com.darkenedsky.gemini.service.Service;
 import com.darkenedsky.gemini.Player;
@@ -43,96 +43,66 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		minDeckSize = minSize;
 		maxDeckSize = maxSize;
 
+		library.addSection("sets");
+		library.addSection("cards");
 
-		handlers.put(CCG_GET_VALID_CARDS, new Handler(null) { 
+		handlers.put(CCG_GET_VALID_CARDS, new Handler() { 
 			@Override
 			public void processMessage(Message m, Player p) throws Exception { 
 				getValidCards(m, p);
 			}
 		});
 		
-		handlers.put(CCG_GET_DECKS, new Handler(null) {
+		handlers.put(CCG_GET_DECKS, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				getDecks(p, p.getPlayerID());
 			}
 		});
 
-		handlers.put(CCG_GET_STARTER_DECKS, new Handler(null) {
+		handlers.put(CCG_GET_STARTER_DECKS, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				getDecks(p, null);
 			}
 		});
 
-		handlers.put(CCG_CREATE_DECK, new Handler(null) {
+		handlers.put(CCG_CREATE_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				createDeck(m, p);
 			}
 		});
 
-		handlers.put(CCG_DELETE_DECK, new Handler(null) {
+		handlers.put(CCG_DELETE_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				deleteDeck(m, p);
 			}
 		});
 
-		handlers.put(CCG_CLONE_DECK, new Handler(null) {
+		handlers.put(CCG_CLONE_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				cloneDeck(m, p);
 			}
 		});
 
-		handlers.put(CCG_EDIT_DECK, new Handler(null) {
+		handlers.put(CCG_EDIT_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				editDeck(m, p);
 			}
 		});
 
-		// Load all the sets into the library
-		loadSets();
-
 	}
 
-	@SuppressWarnings("unchecked")
-	private void loadSets() throws Exception {
-
-		ResultSet set = null;
-		try {
-			PreparedStatement ps = jdbc.prepareStatement("select * from card_sets where serviceid = ?;");
-			ps.setInt(1, serviceID);
-			set = ps.executeQuery();
-			if (set.first()) {
-				while (true) {
-					String clazz = set.getString("javaclass");
-					Class<CardSet<? extends Card>> setClass = (Class<CardSet<? extends Card>>) Class.forName(clazz);
-					Constructor<CardSet<? extends Card>> setCon = setClass.getConstructor();
-					CardSet<? extends Card> theSet = (CardSet<? extends Card>) setCon.newInstance();
-					theSet.addToLibrary(library);
-
-					if (set.isLast()) break;
-					set.next();
-				}
-			}
-			set.close();
-		}
-		catch (Exception x) {
-			if (set != null) {
-				set.close();
-			}
-			throw x;
-		}
-	}
 
 	
-	protected HashMap<Integer, CCGCard> getValidCardsMap(Player p) throws Exception { 
+	protected HashMap<Integer, TCard> getValidCardsMap(Player p) throws Exception { 
 	
 		// get a list of all the cards you can access
-		HashMap<Integer, CCGCard> legalCards = new HashMap<Integer, CCGCard>(200);
+		HashMap<Integer, TCard> legalCards = new HashMap<Integer, TCard>(200);
 		PreparedStatement ps = jdbc.prepareStatement("select * from ccg_get_usable_sets(?,?);");
 		ps.setLong(1, p.getPlayerID());
 		ps.setInt(2, serviceID);
@@ -140,8 +110,8 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		if (set.first()) {
 			while (true) {
 				@SuppressWarnings("unchecked")
-				CardSet<CCGCard> cardSet = (CardSet<CCGCard>)library.getSection("sets").get(set.getInt("setid"));
-				for (CCGCard card : cardSet.getCards()) 
+				CardSet<TCard> cardSet = (CardSet<TCard>)library.getSection("sets").get(set.getInt("setid"));
+				for (TCard card : cardSet.getCards()) 
 					legalCards.put(card.getDefinitionID(), card);
 				if (set.isLast()) break;
 				set.next();
@@ -155,7 +125,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		Message msg = new Message(CCG_GET_VALID_CARDS);
 		msg.addList("cards");
 		
-		for (Map.Entry<Integer, CCGCard> card : getValidCardsMap(p).entrySet()) { 
+		for (Map.Entry<Integer, TCard> card : getValidCardsMap(p).entrySet()) { 
 			msg.addToList("cards", card.getValue().serialize(null));
 		}
 		p.pushOutgoingMessage(msg);
@@ -181,11 +151,11 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		Vector<CCGDeckValidationException> issues = new Vector<CCGDeckValidationException>();
 		int total = 0;
 		
-		HashMap<Integer, CCGCard> legalCards = getValidCardsMap(p);
+		HashMap<Integer, TCard> legalCards = getValidCardsMap(p);
 		
 		// Complain if they have more copies of a particular card in the deck than they should
 		for (Map.Entry<Integer, Integer> count : cardCount.entrySet()) {
-			CCGCard card = legalCards.get(count.getKey());
+			TCard card = legalCards.get(count.getKey());
 			if (card == null) {
 				issues.add(new CCGDVUnpurchasedCardException(count.getKey()));
 			}
@@ -448,7 +418,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 	}
 		
 	
-	public CardDeck<TCard> spawnDeck(CardGame<TCard, ?> g, Player p, long deckid) throws Exception {
+	public CardDeck<TCard> spawnDeck(CardGame<?,?> g, Player p, long deckid) throws Exception {
 
 		LibrarySection lib = library.getSection("cards");
 		
@@ -472,7 +442,7 @@ public class CCGDeckService<TCard extends Card> extends Service {
 				Constructor<TCard> defCon = defClass.getConstructor(Long.class, Long.class);
 				for (int i = 0; i < card.getValue(); i++) {
 					TCard tcard = (defCon.newInstance(g.getNextObjectID(), p.getPlayerID()));
-					tcard.setGame(g);
+					tcard.setGame(g);					
 					deck.add(tcard);
 				}
 			}

@@ -7,10 +7,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.darkenedsky.gemini.exception.GameFullException;
 import com.darkenedsky.gemini.exception.InvalidGamePasswordException;
 import com.darkenedsky.gemini.exception.InvalidPlayerException;
-import com.darkenedsky.gemini.exception.NotEveryoneIsReadyException;
+import com.darkenedsky.gemini.handler.AddPlayerHandler;
+import com.darkenedsky.gemini.handler.ChatHandler;
+import com.darkenedsky.gemini.handler.DropPlayerHandler;
+import com.darkenedsky.gemini.handler.ExecuteBlockingHandler;
+import com.darkenedsky.gemini.handler.ForfeitHandler;
+import com.darkenedsky.gemini.handler.GameHandler;
+import com.darkenedsky.gemini.handler.SessionValidator;
+import com.darkenedsky.gemini.handler.SetReadyHandler;
+import com.darkenedsky.gemini.handler.StartGameHandler;
+import com.darkenedsky.gemini.handler.TurnEndHandler;
+import com.darkenedsky.gemini.handler.WhisperHandler;
 import com.darkenedsky.gemini.service.GameCacheInterface;
 import com.darkenedsky.gemini.service.Service;
 import com.darkenedsky.gemini.service.WinLossRecordManager;
+import java.util.HashMap;
+import com.darkenedsky.gemini.handler.Handler;
 
 /** The core class from which all Games are derived. */
 public abstract class Game<TChar extends GameCharacter> extends Service implements MessageProcessor, MessageSerializable {
@@ -25,6 +37,9 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	
 	/** The game's ID. */
 	protected long gameID;
+	
+	/** Handlers "blocking" a player - used for client callbacks */
+	private HashMap<Long, Handler> blockingHandlers = new HashMap<Long, Handler>();
 	
 	/** Give the game control of Object IDs created within it. In this way, we know that no matter what,
 	 * objects in the game will have unique IDs within that game. Since we're not going to write in-game data
@@ -80,136 +95,49 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	
 		// the creator of the game probably wants to play in it
 		addPlayer(e, p);
-	
-		Handler chat = new Handler(this) { 
-			@Override
-			public void processMessage(Message m, Player p) throws Exception  { 
-				Message sending = new Message(CHAT, game.getGameID(), p.getPlayerID());
-				sending.put("message", m.getString("message"));
-				sending.put("playerid", p.getPlayerID());
-				sending.put("username", p.getUsername());
 
-				for (Player play : players) { 
-					play.pushOutgoingMessage(sending);
-				}
-			}
-		};
-		chat.getGeneralValidator().setRequiresInGame(null);
-		chat.getGeneralValidator().setRequireEliminated(null);
-		handlers.put(CHAT, chat);
+		handlers.put(CHAT, new ChatHandler(this));
+		handlers.put(WHISPER, new WhisperHandler(this));
+		handlers.put(ADD_PLAYER, new AddPlayerHandler(this));
+		handlers.put(DROP_PLAYER, new DropPlayerHandler(this));
+		handlers.put(SET_READY, new SetReadyHandler(this));
+		handlers.put(START_GAME, new StartGameHandler(this));
+		handlers.put(FORFEIT, new ForfeitHandler(this));
+		handlers.put(TURN_END, new TurnEndHandler(this));
 		
-		Handler whisper = new Handler(this) { 
-			@Override
-			public void processMessage(Message m, Player p)  throws Exception { 
-				long pid = m.getLong("targetplayerid");
-				Message sending = new Message(WHISPER, game.getGameID(), p.getPlayerID());
-				sending.put("message", m.getString("message"));
-				sending.put("playerid", p.getPlayerID());
-				sending.put("username", p.getUsername());
-				game.getPlayer(pid).pushOutgoingMessage(sending);			
-			}
-		};
-		whisper.getGeneralValidator().setRequiresInGame(null);
-		whisper.getGeneralValidator().setRequireEliminated(null);
-		handlers.put(WHISPER,whisper);
+		Handler h = new ExecuteBlockingHandler<Game<TChar>>(this);
+		handlers.put(CHOOSER, h);
+		handlers.put(CONFIRM_YES_NO, h);
+		handlers.put(CONFIRM_OK_CANCEL, h);
+		handlers.put(CALLBACK, h);
 		
-		Handler gameState = new Handler(this) { 
+		// do nothing handler will "get the game state" -
+		// the service will then send the default game state message after this.
+		GameHandler<?> gameState = new GameHandler<Game<?>>(this) { 
 			@Override
 			public void processMessage(Message m, Player p) throws Exception { 
-				// do nothing -- the service will then send the default game state message after this.
 			}
 		};
-		gameState.getGeneralValidator().setPhases();
-		gameState.getGeneralValidator().setRequireEliminated(null);
-		gameState.getGeneralValidator().setRequiresSession(Handler.REQUIRES_YES);
-		gameState.getGeneralValidator().setTurnState(Handler.ON_ANY_TURN);
+		gameState.addValidator(new SessionValidator());
 		handlers.put(GAME_STATE, gameState);
-		
-		// Add a player to the game in lobby state
-		Handler addPlay = new Handler(this) { 
-			@Override
-			public void processMessage(Message m, Player p) throws Exception { 
-				addPlayer(m,p);
-			}
-		};
-		// add player is the only action you can do when you aren't already a player
-		addPlay.getGeneralValidator().setPhases(CREATE_GAME);
-		addPlay.getGeneralValidator().setRequiresInGame(Handler.REQUIRES_NO);
-		addPlay.getGeneralValidator().setRequireEliminated(null);		
-		handlers.put(ADD_PLAYER, addPlay);
-		
-		// Drop a player from the game in lobby state
-		Handler dropPlay = new Handler(this) { 
-			@Override
-			public void processMessage(Message m, Player p)  throws Exception { 
 
-				clearReadyStatuses();
-				
-				players.remove(p);
-				playersReady.remove(p.getPlayerID());
-				p.removeCurrentGame(getGameID());
-				Message reply = new Message(DROP_PLAYER, getGameID(), p.getPlayerID());
-				for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
-				
-			}
-		};
-		dropPlay.getGeneralValidator().setPhases(CREATE_GAME);
-		dropPlay.getGeneralValidator().setRequireEliminated(null);		
-		handlers.put(DROP_PLAYER, dropPlay);
-		
-		// Designate a player as ready to start in lobby state
-		Handler setReady = new Handler(this) { 
-			@Override
-			public void processMessage(Message m, Player p)  throws Exception { 
-				setReady(m, p);
-			}
-		};
-		setReady.getGeneralValidator().setPhases(CREATE_GAME);
-		setReady.getGeneralValidator().setRequireEliminated(null);		
-		handlers.put(SET_READY, setReady);
-		
-		// start the game.
-		Handler start = new Handler(this) { 
-			@Override
-			public void processMessage(Message m, Player p) throws Exception {
-				
-				if (!isEveryoneReady()) { 
-					throw new NotEveryoneIsReadyException(game.getGameID());
-				}
-				startGame();
-				startNewTurn();
-			}
-		};
-		start.getGeneralValidator().setRequireEliminated(null);		
-		start.getGeneralValidator().setPhases(CREATE_GAME);
-		handlers.put(START_GAME, start);
-		
-		Handler turnEnd = new Handler(this) { 
-			
-			@Override
-			public void processMessage(Message m, Player p) throws Exception { 
-				startNewTurn();
-			}
-		};
-		turnEnd.getGeneralValidator().setPhases(TURN_START, MAIN_PHASE);
-		turnEnd.getGeneralValidator().setTurnState(HandlerValidator.ON_YOUR_TURN);
-		handlers.put(TURN_END, turnEnd);
-		
-		Handler forfeit = new Handler(this) { 
-			
-			@Override
-			public void processMessage(Message m, Player p) throws Exception { 
-				getCharacter(p.getPlayerID()).setEliminated(true);
-				Message reply = new Message(FORFEIT, getGameID(), p.getPlayerID());
-				for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
-								
-				startNewTurn();
-			}
-		};
-		forfeit.getGeneralValidator().setTurnState(HandlerValidator.ON_YOUR_TURN);
-		handlers.put(FORFEIT, forfeit);
+	}
+	
+	/** Add a blocking handler 
+	 *  @param player Player to block
+	 *  @param hand Handler to block on
+	 */
+	public void setBlockingHandler(Player player, Handler hand) { 
+		blockingHandlers.put(player.getPlayerID(), hand);
 	}
 
+	/** Get the blocking handler for a player 
+	 *  @param pid player id
+	 */
+	public Handler getBlockingHandler(long pid) { 
+		return blockingHandlers.get(pid);
+	}
+	
 	/** Checks if a game is full. Used so we don't show full but not-yet-started games in GET_OPEN_GAMES. 
 	 * @return true if the game is at its max_players.
 	 */
@@ -219,7 +147,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	
 	public int getTurnCount() { return turnCount; }
 	
-	protected void setReady(Message m, Player p) throws Exception { 
+	public void setReady(Message m, Player p) throws Exception { 
 		playersReady.put(p.getPlayerID(), m.getBoolean("ready"));
 		Message reply = new Message(SET_READY, getGameID(), p.getPlayerID());
 		for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
@@ -229,7 +157,17 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	protected void onTurnStart() throws Exception { } 
 	protected void onTurnEnd() throws Exception { } 
 	
-	protected void startGame() throws Exception { 
+	public void dropPlayer(Player p) { 
+		clearReadyStatuses();		
+		players.remove(p);
+		playersReady.remove(p.getPlayerID());
+		p.removeCurrentGame(getGameID());
+		Message reply = new Message(DROP_PLAYER, getGameID(), p.getPlayerID());
+		for (Player play : getPlayers()) { play.pushOutgoingMessage(reply); }
+		
+	}
+	
+	public void startGame() throws Exception { 
 
 		Collections.shuffle(players);
 		
@@ -239,8 +177,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 			characters.add(chr);
 			chr.setGame(this);
 			chr.onGameStart();
-		}
-					
+		}				
 	}
 	
 	/** Send the game state after any other messages, to make sure you didn't miss anything */
@@ -293,7 +230,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	public int getState() { return state; }
 	public Vector<Player> getPlayers() { return players; }
 	
-	private void addPlayer(Message m, Player p) throws Exception { 
+	public void addPlayer(Message m, Player p) throws Exception { 
 		if (playersReady.size() >= maxplayers)
 			throw new GameFullException(gameID);
 		
@@ -317,7 +254,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		}
 	}
 	
-	private boolean isEveryoneReady() { 
+	public boolean isEveryoneReady() { 
 		for (Boolean b : playersReady.values()) { 
 			if (!b) { 
 				return false;
@@ -412,7 +349,7 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 	}
 
 	/** Initialize a new turn. */
-	protected void startNewTurn() throws Exception { 
+	public void startNewTurn() throws Exception { 
 		  		
 		if (turnCount > 0) { 
 			characters.get(currentPlayerIndex).validateYourTurnEnd();

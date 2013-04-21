@@ -1,11 +1,12 @@
 package com.darkenedsky.gemini.guild;
 
 import com.darkenedsky.gemini.ActionList;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.GuildPermissionException;
 import com.darkenedsky.gemini.exception.NotGuildMemberException;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 import com.darkenedsky.gemini.service.SessionManager;
 
 public class GuildChatHandler extends Handler {
@@ -14,6 +15,7 @@ public class GuildChatHandler extends Handler {
 	
 	public GuildChatHandler(SessionManager<?> sess) { 
 		sessions = sess;
+		addValidator(new SessionValidator());
 	}
 	
 	@Override

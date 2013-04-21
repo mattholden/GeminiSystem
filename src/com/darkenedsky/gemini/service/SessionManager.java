@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.Vector;
@@ -15,6 +16,7 @@ import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.badge.BadgeService;
+import com.darkenedsky.gemini.exception.GeminiException;
 import com.darkenedsky.gemini.exception.InvalidEmailTemplateException;
 import com.darkenedsky.gemini.exception.InvalidLoginException;
 import com.darkenedsky.gemini.exception.InvalidPlayerException;
@@ -22,7 +24,6 @@ import com.darkenedsky.gemini.exception.InvalidSessionException;
 import com.darkenedsky.gemini.guild.GuildService;
 import com.darkenedsky.gemini.tools.FileTools;
 import com.darkenedsky.gemini.tools.StringTools;
-import com.darkenedsky.gemini.tools.XMLTools;
 
 /** Class to manage session data. The one and only instance will be owned by the GeminiService. This is primarily done to keep all 
  * "login module"-related code isolated from the game lobby and main server.
@@ -139,7 +140,6 @@ public class SessionManager<TPlay extends Player> implements ActionList {
 		
 		TPlay player = sessions.get(token);
 		if (player != null) {
-			player.pushOutgoingMessage(XMLTools.message(LOGOUT));
 			sessions.remove(token);
 		}
 	}
@@ -350,10 +350,10 @@ public class SessionManager<TPlay extends Player> implements ActionList {
 			addSession(token);			
 			return loginMessage(token,LOGIN);
 		}
-		catch (Exception x) { 
+		catch (SQLException x) { 
 			if (set != null)
 				set.close();
-			throw(x); 
+			throw(GeminiException.translateSQLException(x)); 
 		}
 		
 	}
@@ -390,6 +390,8 @@ public class SessionManager<TPlay extends Player> implements ActionList {
 			if (set2.first()) { 
 				Constructor<TPlay> con = playerClass.getConstructor(ResultSet.class);			
 				player = (TPlay)con.newInstance(set2);
+				
+				// TODO: Replace existing login if the user is already logged in
 				sessions.put(token, player);
 				set2.close();
 								

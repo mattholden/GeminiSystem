@@ -3,9 +3,9 @@ package com.darkenedsky.gemini.store;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.handler.Handler;
 import com.darkenedsky.gemini.service.JDBCConnection;
 
 public class GetCatalogHandler extends Handler { 
@@ -13,7 +13,7 @@ public class GetCatalogHandler extends Handler {
 	private JDBCConnection jdbc;
 	
 	public GetCatalogHandler(JDBCConnection j) { 
-		super(null);
+		super();
 		jdbc = j;
 	}
 

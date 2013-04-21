@@ -1,9 +1,10 @@
 package com.darkenedsky.gemini.guild;
 
 import java.sql.PreparedStatement;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 
 public class GuildDeclineHandler extends Handler {
 
@@ -11,6 +12,8 @@ public class GuildDeclineHandler extends Handler {
 	
 	public GuildDeclineHandler(GuildService gs) { 
 		service = gs;
+		addValidator(new SessionValidator());
+		
 	}
 	
 	@Override

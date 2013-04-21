@@ -1,10 +1,11 @@
 package com.darkenedsky.gemini.guild;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.GuildPermissionException;
 import com.darkenedsky.gemini.exception.InvalidObjectException;
 import com.darkenedsky.gemini.exception.NotGuildMemberException;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 
 public class GuildEditHandler extends Handler { 
 	
@@ -12,6 +13,8 @@ public class GuildEditHandler extends Handler {
 		
 		public GuildEditHandler(GuildService gs) { 
 			service = gs;
+			addValidator(new SessionValidator());
+			
 		}
 				
 		@Override

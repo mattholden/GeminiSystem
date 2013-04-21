@@ -3,11 +3,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.MessageProcessor;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.InvalidActionException;
+import com.darkenedsky.gemini.handler.Handler;
 
 /** Base class for any "service" (a MessageProcessor) that can process multiple actions, to identify which
  *  actions it can process. 

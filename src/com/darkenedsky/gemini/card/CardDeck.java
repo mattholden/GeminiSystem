@@ -7,11 +7,6 @@ import com.darkenedsky.gemini.Dice;
 import com.darkenedsky.gemini.exception.InvalidObjectException;
 
 public class CardDeck<TCard extends Card> implements CardContainer<TCard> {
-		
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1012037472580622295L;
 
 	/** store the cards */
 	private Vector<TCard> cards = new Vector<TCard>();
@@ -34,6 +29,12 @@ public class CardDeck<TCard extends Card> implements CardContainer<TCard> {
 	public static final int
 		DECK = 0, HAND = 1, DISCARD = 2;
 	
+	public TCard pickRandom() {
+		int count = cards.size();
+		int pick = (int)Dice.numberBetween(0, count-1);
+		return cards.get(pick);
+	}
+	
 	/** Shuffle the deck. */
 	public void shuffle() { 
 		Collections.shuffle(cards, Dice.rand);
@@ -45,6 +46,10 @@ public class CardDeck<TCard extends Card> implements CardContainer<TCard> {
 	}
 	
 	private Long objectID;
+	
+	public CardDeck() { 
+		this(null,null,-1);
+	}
 	
 	public CardDeck(Long objID, Long player, int type) { 
 		objectID = objID;
@@ -110,7 +115,8 @@ public class CardDeck<TCard extends Card> implements CardContainer<TCard> {
 	public void add(TCard card) throws Exception{
 		validateAddCard(card);
 		cards.add(card);
-		card.setController(this.playerID);
+		if (this.playerID != null)
+			card.setController(this.playerID);
 		onCardAdded(card);		
 	}
 	

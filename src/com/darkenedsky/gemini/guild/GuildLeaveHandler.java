@@ -3,17 +3,22 @@ package com.darkenedsky.gemini.guild;
 import java.sql.PreparedStatement;
 
 import com.darkenedsky.gemini.ActionList;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.NotGuildMemberException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 
 public class GuildLeaveHandler extends Handler {
 
 	private GuildService service;
 	
-	public GuildLeaveHandler(GuildService gs) { service = gs; }
+	public GuildLeaveHandler(GuildService gs) { 
+		service = gs;
+		addValidator(new SessionValidator());
+		
+	}
 
 	
 	@Override

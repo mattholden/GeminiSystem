@@ -1,6 +1,5 @@
 package com.darkenedsky.gemini.guild;
 import java.sql.PreparedStatement;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.GuildPermissionException;
@@ -9,6 +8,8 @@ import com.darkenedsky.gemini.exception.InvalidObjectException;
 import com.darkenedsky.gemini.exception.InvalidPlayerException;
 import com.darkenedsky.gemini.exception.NotGuildMemberException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 
 public class GuildSetRankHandler extends Handler { 
 	
@@ -16,6 +17,8 @@ public class GuildSetRankHandler extends Handler {
 		
 		public GuildSetRankHandler(GuildService gs) { 
 			service = gs;
+			addValidator(new SessionValidator());
+			
 		}
 		
 		@Override

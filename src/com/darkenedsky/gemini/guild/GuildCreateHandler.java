@@ -2,11 +2,12 @@ package com.darkenedsky.gemini.guild;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import com.darkenedsky.gemini.ActionList;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.AlreadyGuildMemberException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 
 /** Handler for creating a new guild. Will also add the founder to the guild (with the rank of Founder,
  * obviously) and assign all default permissions and rank titles. 
@@ -23,8 +24,10 @@ public class GuildCreateHandler extends Handler {
 	 * @param gs the parent GuildService
 	 */
 	public GuildCreateHandler(GuildService gs) { 
-		super(null);
+		super();
 		service = gs;
+		addValidator(new SessionValidator());
+		
 	}
 	
 	@Override

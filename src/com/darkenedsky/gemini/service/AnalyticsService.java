@@ -2,11 +2,11 @@ package com.darkenedsky.gemini.service;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.InvalidActionException;
 import com.darkenedsky.gemini.exception.InvalidPlayerException;
+import com.darkenedsky.gemini.handler.Handler;
 
 public class AnalyticsService extends Service {
 
@@ -16,7 +16,7 @@ public class AnalyticsService extends Service {
 		
 		jdbc = jDBC;
 		
-		handlers.put(GET_ANALYTICS, new Handler(null) { 
+		handlers.put(GET_ANALYTICS, new Handler() { 
 			@Override
 			public void processMessage(Message m, Player p) throws Exception { 
 				

@@ -17,6 +17,7 @@ public class CardSet<TCard extends Card> extends GameObject {
 	}
 
 	protected void add(TCard card) { 
+		System.out.println("Adding card " + card.toString());
 		cards.add(card);
 	}
 	

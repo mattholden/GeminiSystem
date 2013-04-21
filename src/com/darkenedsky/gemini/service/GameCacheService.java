@@ -5,12 +5,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.darkenedsky.gemini.Library;
 import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.GameCharacter;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.card.CCGDeckService;
-import com.darkenedsky.gemini.card.CCGGame;
+import com.darkenedsky.gemini.card.CardGame;
 import com.darkenedsky.gemini.exception.InvalidGameException;
+import com.darkenedsky.gemini.handler.Handler;
 
 /** Service to handle the creation, caching, and polling of games. Stores all active games and replies to 
  * messages looking for games to join.
@@ -58,14 +58,14 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter>> exten
 		winLossRecords = new WinLossRecordManager(settings, jdbc);
 		library = lib;
 		
-		handlers.put(CREATE_GAME, new Handler(null) { 
+		handlers.put(CREATE_GAME, new Handler() { 
 			@Override
 			public void processMessage(Message e, Player p) throws Exception { 
 				createGame(e, p);				
 			}
 		});
 		
-		handlers.put(GET_OPEN_GAMES, new Handler(null) { 
+		handlers.put(GET_OPEN_GAMES, new Handler() { 
 			@Override
 			public void processMessage(Message e, Player p) throws Exception { 
 				Message opens = new Message(GET_OPEN_GAMES);
@@ -79,7 +79,7 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter>> exten
 			}
 		});
 		
-		handlers.put(POLL, new Handler(null) { 
+		handlers.put(POLL, new Handler() { 
 			@Override
 			public void processMessage(Message e, Player p) throws Exception { 
 				Message reply = new Message(POLL);
@@ -108,8 +108,8 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter>> exten
 		// if a deck service has been set up, and you're a CCG game, add the deck service to the game.
 		// This is a little bit sloppy but saves us having to extend both GeminiService and GameCacheService
 		// for every game project.
-		if (deckService != null && game instanceof CCGGame<?,?>) { 
-			((CCGGame<?,?>)game).setDeckService(deckService);
+		if (deckService != null && game instanceof CardGame<?,?>) { 
+			((CardGame<?,?>)game).setDeckService(deckService);
 		}
 		
 		game.init();

@@ -20,6 +20,7 @@ public interface ExceptionCodes {
 	DUPLICATE_DEFINITION_ID = 102,
 	INVALID_LIBRARY_SECTION = 103,
 	INVALID_OBJECT = 104,
+	KEYWORD = 105,
 	
 	// LOGIN/SESSION
 	INVALID_LOGIN = 1001,
@@ -31,6 +32,7 @@ public interface ExceptionCodes {
 	ACTION_NOT_ALLOWED = 1007,
 	INVALID_STATISTIC = 1008,
 	INVALID_EMAIL_TEMPLATE = 1009,
+	IP_BANNED = 1010,
 	
 	// guild
 	NOT_GUILD_MEMBER = 1501,
@@ -53,6 +55,11 @@ public interface ExceptionCodes {
 	NOT_EVERYONE_IS_READY = 2006,
 	PLAYER_ELIMINATED = 2007,
 	
+	// game rules
+	USES_PER_GAME = 2101,
+	USES_PER_TURN = 2102,
+	BLOCKED = 2103,
+	
 	// deck building and validation
 	CCG_DUPLICATE_DECKNAME = 3001,
 	CCG_INVALID_DECK = 3002,
@@ -68,7 +75,7 @@ public interface ExceptionCodes {
 	INVALID_CARD_TYPE = 3105,
 	INVALID_CARD_ACTION = 3106,
 	TOO_MANY_CARDS_IN_HAND = 3107,
-	
+	INSUFFICIENT_RESOURCES = 3108,
 	
 	// store errors
 	INVALID_PROMO = 4001,

@@ -20,6 +20,7 @@ public abstract class FileTools {
     
         if (length > Integer.MAX_VALUE) {
             // File is too large
+        	is.close();
         	throw new IOException("File is greater than 4GB!");
         }
     
@@ -36,6 +37,7 @@ public abstract class FileTools {
     
         // Ensure all the bytes have been read in
         if (offset < bytes.length) {
+        	is.close();
             throw new IOException("Could not completely read file "+file.getName());
         }
     
@@ -52,8 +54,11 @@ public abstract class FileTools {
 		OutputStream outWrite = new BufferedOutputStream(new FileOutputStream(out));
 		byte[] buffer = new byte[(int)in.length()];	
 		int read = inRead.read(buffer);
-		if (read != in.length())
+		if (read != in.length()) {
+			inRead.close();	
+			outWrite.close();
 			throw new IOException("File not completely read.");
+		}
 		
 		inRead.close();		
 		outWrite.write(buffer);		

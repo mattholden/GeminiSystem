@@ -17,7 +17,7 @@ public class UserBannedException extends GeminiException {
 	 * @param why The reason for the ban.
 	 */
 	public UserBannedException(long pid, Timestamp when, String why) { 
-		super(1007, "User is banned!");
+		super(ExceptionCodes.USER_BANNED, "User is banned!");
 		details.put("playerid", pid);
 		details.put("until", when.getTime());
 		details.put("reason", why);

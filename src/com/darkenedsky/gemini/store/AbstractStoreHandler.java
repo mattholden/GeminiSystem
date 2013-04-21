@@ -5,13 +5,13 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.InvalidObjectException;
 import com.darkenedsky.gemini.exception.InvalidPlayerException;
 import com.darkenedsky.gemini.exception.InvalidPromoException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.handler.Handler;
 import com.darkenedsky.gemini.service.JDBCConnection;
 import com.stripe.model.Customer;
 
@@ -20,7 +20,7 @@ public abstract class AbstractStoreHandler extends Handler {
 	protected JDBCConnection jdbc;
 	
 	public AbstractStoreHandler(JDBCConnection j) { 
-		super(null);
+		super();
 		jdbc = j;
 	
 	}

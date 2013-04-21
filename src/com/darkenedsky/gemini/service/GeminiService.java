@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Vector;
 import org.apache.log4j.Logger;
-
+import org.jdom2.Element;
 import com.darkenedsky.gemini.ActionList;
 import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.GameCharacter;
@@ -17,15 +17,12 @@ import com.darkenedsky.gemini.exception.InvalidActionException;
 import com.darkenedsky.gemini.exception.JavaException;
 import com.darkenedsky.gemini.guild.GuildService;
 import com.darkenedsky.gemini.store.StoreService;
+import com.darkenedsky.gemini.tools.XMLTools;
 
 /** The service that processes incoming messages, spawns Games, handles logins and other Sessions, etc.
  *  Extend this class for each game "service" (FKA projects) that you wish to run. */
 public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TGame extends Game<TChar>> implements ActionList {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1133934743984044518L;
 	
 	/** Logger instance */
 	private static Logger LOG = Logger.getLogger(GeminiService.class);
@@ -103,6 +100,9 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 	}
 
 		
+	/** Accessor for the Library */
+	public Library getLibrary() { return gameCacheService.getLibrary(); }
+	
 	/** Accessor for the settings created from the XML settings file. */
 	public Message getSettings() { 
 		return settings;
@@ -249,4 +249,69 @@ public class GeminiService<TChar extends GameCharacter, TPlay extends Player, TG
 		}
 		return replies;
 	}	
+	
+
+
+	public ServletResponse doRequest(String xml, String json, String ip, String method, boolean isSecure) throws Exception { 
+			
+		try {
+			LOG.debug("Request received");
+			
+			// don't try to do anything before we're ready
+			if (getSettings() != null) {						
+				if (getSettings().getBoolean("require-https") && !isSecure)
+					throw new Exception("Insecure requests are not accepted by this server.");
+				if (getSettings().getBoolean("allow-get-requests") && !method.equalsIgnoreCase("POST"))
+					throw new Exception("HTTP GET requests are not accepted by this server.");
+			}
+			
+			String m = xml;
+			String j = json;
+			if (j != null) { 
+				LOG.debug("===================================================");
+				LOG.debug("RECEIVED JSON:");
+				LOG.debug(j);
+				Message msg = new Message(j);
+				msg.put(Message.SESSION_IPADDRESS, ip);
+				Vector<Message> replies = (processMessage(msg));
+				StringBuffer sb = new StringBuffer("[\n");
+				for (int i = 0; i < replies.size(); i++) { 
+					sb.append(replies.get(i).toJSONString());
+					if (i != replies.size()-1) { 
+						sb.append(",\n");
+					}
+				}
+				sb.append("\n]");
+				
+				String retstr = sb.toString();
+				LOG.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nRESPONDED:");			
+				LOG.debug(retstr);
+				return new ServletResponse(retstr, "text/json");				
+			}
+			
+			else if (m != null) { 
+			
+				LOG.debug("===================================================");
+				LOG.debug("RECEIVED XML:");
+				LOG.debug(m);
+				Element e = XMLTools.stringToXML(m);
+				e.addContent(XMLTools.xml(Message.SESSION_IPADDRESS, ip));
+				Message msg = Message.getMessage(e);				
+				Vector<Message> replies = (processMessage(msg));
+				Element reply = new Element("messages");
+				for (Message mx : replies) { 
+					reply.addContent(mx.toXML("message"));
+				}
+				String retstr = XMLTools.xmlToString(reply);
+				LOG.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nRESPONDED:");			
+				LOG.debug(retstr);
+				return new ServletResponse(retstr, "text/xml");				
+			}
+			else return null;
+			
+		}
+		catch (IOException x) { 
+			throw x;
+		}
+	}
 }

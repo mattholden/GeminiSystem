@@ -4,19 +4,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import com.darkenedsky.gemini.ActionList;
-import com.darkenedsky.gemini.Handler;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.AlreadyGuildMemberException;
 import com.darkenedsky.gemini.exception.InvalidObjectException;
 import com.darkenedsky.gemini.exception.NoGuildInviteException;
 import com.darkenedsky.gemini.exception.SQLUpdateFailedException;
+import com.darkenedsky.gemini.handler.Handler;
+import com.darkenedsky.gemini.handler.SessionValidator;
 
 public class GuildJoinHandler extends Handler {
 
 	private GuildService service;
 	
-	public GuildJoinHandler(GuildService gs) { service = gs; }
+	public GuildJoinHandler(GuildService gs) { 
+		service = gs; 
+		addValidator(new SessionValidator());
+	}
 
 	
 	@Override
