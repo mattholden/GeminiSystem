@@ -24,8 +24,6 @@ public class SpecialHandler extends GameHandler<CardGame<?, ?>> {
 		// call all our validators for the basics
 		super.validate(m, p);
 
-		// There's very little specific validation we can do that's unique to
-		// all card specials...
 		Card card = getGame().getCard(m.getLong(CardValidator.CARDID));
 		Special special = card.getSpecialForAction(m.getRequiredInt("action"));
 		special.validate(m, p);

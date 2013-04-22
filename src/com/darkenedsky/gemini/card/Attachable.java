@@ -1,7 +1,7 @@
 package com.darkenedsky.gemini.card;
 
 /** Used for cards that can be attached to other cards. */
-public interface AttachableCard {
+public interface Attachable {
 	
 
 	public void onAttach(Card attachedTo) throws Exception;
