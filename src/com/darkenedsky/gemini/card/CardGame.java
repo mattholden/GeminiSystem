@@ -18,8 +18,6 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 
 	/** Store the deck IDs selected. Used only during the lobby phase. */
 	private transient ConcurrentHashMap<Long, Long> deckIDs = new ConcurrentHashMap<Long, Long>();
-	/** Deck service for validation */
-	private transient CCGDeckService<TCard> deckService;
 
 	public CardGame(long gid, Message e, Player p, Class<TChar> tcharClazz) throws Exception {
 		super(gid, e, p, tcharClazz);
@@ -69,6 +67,9 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 	protected void onGameStart() throws Exception {
 		super.onGameStart();
 
+		@SuppressWarnings("unchecked")
+		CCGDeckService<TCard> deckService = (CCGDeckService<TCard>) this.getServer().getService(CCGDeckService.class);
+
 		for (TChar chr : characters) {
 			long did = deckIDs.get(chr.getPlayer().getPlayerID());
 			chr.setDeck(deckService.spawnDeck(this, chr.getPlayer(), did), did);
@@ -78,13 +79,11 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 
 	}
 
-	@SuppressWarnings("unchecked")
-	public void setDeckService(CCGDeckService<?> deckService2) {
-		deckService = (CCGDeckService<TCard>) deckService2;
-	}
-
 	@Override
 	public void setReady(Message m, Player p) throws Exception {
+
+		@SuppressWarnings("unchecked")
+		CCGDeckService<TCard> deckService = (CCGDeckService<TCard>) this.getServer().getService(CCGDeckService.class);
 
 		// can't use if any errors exist
 		for (CCGDeckValidationException x : deckService.validateDeck(m.getLong("deckid"), p)) {

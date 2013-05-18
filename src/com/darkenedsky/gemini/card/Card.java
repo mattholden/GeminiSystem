@@ -19,17 +19,18 @@ public abstract class Card extends GameObjectWithStats implements CardObserver {
 	 */
 	private static final long serialVersionUID = 2552819634147335453L;
 
-	public static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start", COUNTERS = "counters";
+	public static final String UNTAPS_AT_TURN_START = "untaps_at_turn_start";
+	protected String artFile;
 	protected String artist = null;
+
 	/** The ID of the card type */
 	private int cardType;
-
 	protected Long controller;
 	protected HashMap<String, String> flavorText = new HashMap<String, String>();
 	private CardGame<?, ?> game;
+
 	private int maxInDeck = 4;
 	protected Long owner;
-
 	protected boolean psuedoCard = false;
 	protected HashMap<String, String> rulesText = new HashMap<String, String>();
 	protected Vector<Special> specials = new Vector<Special>();
@@ -42,15 +43,15 @@ public abstract class Card extends GameObjectWithStats implements CardObserver {
 		controller = ownerID;
 		cardType = type;
 		statistics.put(UNTAPS_AT_TURN_START, new Statistic("untaps at turn start", 1, Statistic.ALWAYS_HIDDEN));
-		statistics.put(COUNTERS, new Statistic("Counters", 0, Statistic.HIDDEN_IF_ZERO));
 	}
 
 	public Card(int defID, int type, Long objID, String englishName) {
 		super(defID, objID, englishName);
 		cardType = type;
+		artFile = Integer.toString(defID).trim();
 	}
 
-	protected void addSpecial(Special spec) {
+	public void addSpecial(Special spec) {
 		specials.add(spec);
 	}
 
@@ -171,6 +172,10 @@ public abstract class Card extends GameObjectWithStats implements CardObserver {
 	public void onUntapped() throws Exception {
 	}
 
+	public void removeSpecial(Special spec) {
+		specials.remove(spec);
+	}
+
 	@Override
 	public Message serialize(Player p) {
 		Message m = super.serialize(p);
@@ -184,6 +189,7 @@ public abstract class Card extends GameObjectWithStats implements CardObserver {
 		if (p == null && artist != null) {
 			m.put("artist", artist);
 		}
+		m.put("artfile", artFile);
 
 		if (owner == null && controller == null) {
 			m.put("maxindeck", maxInDeck);
