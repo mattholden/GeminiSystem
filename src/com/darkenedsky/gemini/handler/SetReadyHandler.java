@@ -1,14 +1,13 @@
 package com.darkenedsky.gemini.handler;
 
 import com.darkenedsky.gemini.ActionList;
-import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 
-public class SetReadyHandler extends GameHandler<Game<?>> {
+public class SetReadyHandler extends GameHandler {
 
-	public SetReadyHandler(Game<?> g) {
-		super(g);	
+	public SetReadyHandler() {
+
 		addValidator(new PlayerInGameValidator());
 		addValidator(new SessionValidator());
 		addValidator(new GameStateValidator(ActionList.CREATE_GAME));
@@ -17,7 +16,7 @@ public class SetReadyHandler extends GameHandler<Game<?>> {
 
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
-		getGame().setReady(e,p);
+		getGame().setReady(e, p);
 	}
 
 }

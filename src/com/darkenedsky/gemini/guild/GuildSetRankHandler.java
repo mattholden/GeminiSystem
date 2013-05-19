@@ -16,10 +16,8 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildSetRankHandler extends Handler {
 
-	private GuildService service;
+	public GuildSetRankHandler() {
 
-	public GuildSetRankHandler(GuildService gs) {
-		service = gs;
 		addValidator(new SessionValidator());
 
 	}
@@ -30,7 +28,7 @@ public class GuildSetRankHandler extends Handler {
 		if (p.getGuildID() == null)
 			throw new NotGuildMemberException();
 
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 
 		Long guildid = p.getGuildID();
 		Long playerid = e.getRequiredLong("playerid");
@@ -39,7 +37,7 @@ public class GuildSetRankHandler extends Handler {
 		if (newRank < 0 || newRank > 9)
 			throw new InvalidGuildRankException();
 
-		Guild guild = service.getGuild(guildid);
+		Guild guild = ((GuildService) getService()).getGuild(guildid);
 		if (guild == null)
 			throw new InvalidObjectException(guildid);
 
@@ -72,7 +70,7 @@ public class GuildSetRankHandler extends Handler {
 			throw new GuildPermissionException();
 
 		// ok, change his rank
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("update players set guildrank = ? where playerid = ?;");
+		PreparedStatement ps = getService().getServer().getJDBC().prepareStatement("update players set guildrank = ? where playerid = ?;");
 		ps.setInt(1, newRank);
 		ps.setLong(2, p.getPlayerID());
 		if (ps.executeUpdate() == 0)

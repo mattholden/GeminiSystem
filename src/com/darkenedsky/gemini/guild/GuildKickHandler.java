@@ -15,10 +15,7 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildKickHandler extends Handler {
 
-	private GuildService service;
-
-	public GuildKickHandler(GuildService gs) {
-		service = gs;
+	public GuildKickHandler() {
 		addValidator(new SessionValidator());
 
 	}
@@ -32,7 +29,7 @@ public class GuildKickHandler extends Handler {
 		Long guildid = p.getGuildID();
 		Long playerid = e.getRequiredLong("playerid");
 
-		Guild guild = service.getGuild(guildid);
+		Guild guild = ((GuildService) getService()).getGuild(guildid);
 		if (guild == null)
 			throw new InvalidObjectException(guildid);
 
@@ -40,7 +37,7 @@ public class GuildKickHandler extends Handler {
 		if (guild.getMinCanKick() > p.getGuildRank())
 			throw new GuildPermissionException();
 
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 
 		Integer opposingRank = -1;
 		Long opposingGuild = -1L;
@@ -67,7 +64,7 @@ public class GuildKickHandler extends Handler {
 			throw new GuildPermissionException();
 
 		// ok, toss him out
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("update players set guildid = null, guildrank = null where playerid = ?;");
+		PreparedStatement ps = getService().getServer().getJDBC().prepareStatement("update players set guildid = null, guildrank = null where playerid = ?;");
 		ps.setLong(1, p.getPlayerID());
 		if (ps.executeUpdate() == 0)
 			throw new SQLUpdateFailedException();

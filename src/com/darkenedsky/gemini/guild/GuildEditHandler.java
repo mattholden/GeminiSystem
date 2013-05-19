@@ -11,10 +11,7 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildEditHandler extends Handler {
 
-	private GuildService service;
-
-	public GuildEditHandler(GuildService gs) {
-		service = gs;
+	public GuildEditHandler() {
 		addValidator(new SessionValidator());
 
 	}
@@ -22,12 +19,12 @@ public class GuildEditHandler extends Handler {
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
 
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 		if (p.getGuildID() == null)
 			throw new NotGuildMemberException();
 
 		Long guildid = p.getGuildID();
-		Guild guild = service.getGuild(guildid);
+		Guild guild = ((GuildService) getService()).getGuild(guildid);
 		if (guild == null)
 			throw new InvalidObjectException(guildid);
 
@@ -43,7 +40,7 @@ public class GuildEditHandler extends Handler {
 		if (guild.getMinCanEditPermissions() <= rank)
 			guild.editPermissions(e);
 
-		service.updateGuild(guild);
+		((GuildService) getService()).updateGuild(guild);
 
 		for (Player guildie : sessionManager.getPlayersInGuild(guildid)) {
 			Message msg = new Message(GUILD_EDIT);

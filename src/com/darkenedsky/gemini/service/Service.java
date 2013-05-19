@@ -26,9 +26,14 @@ public class Service implements MessageProcessor {
 	 * List of the action Handlers registered on this game. Just like old times'
 	 * sake!
 	 */
-	protected transient ConcurrentHashMap<Integer, Handler> handlers = new ConcurrentHashMap<Integer, Handler>();
+	private transient ConcurrentHashMap<Integer, Handler> handlers = new ConcurrentHashMap<Integer, Handler>();
 
 	protected GeminiServer server;
+
+	public void addHandler(int verb, Handler h) {
+		handlers.put(verb, h);
+		h.setService(this);
+	}
 
 	/**
 	 * Check to see if this plugin has the capacity to handle a particular

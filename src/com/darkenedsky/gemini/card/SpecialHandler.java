@@ -4,16 +4,12 @@ import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.handler.GameHandler;
 
-public class SpecialHandler extends GameHandler<CardGame<?, ?>> {
-
-	public SpecialHandler(CardGame<?, ?> game) {
-		super(game);
-	}
+public class SpecialHandler extends GameHandler {
 
 	@Override
 	public void processMessage(Message m, Player p) throws Exception {
 
-		Card card = getGame().getCard(m.getLong(CardValidator.CARDID));
+		Card card = ((CardGame<?, ?>) getGame()).getCard(m.getLong(CardValidator.CARDID));
 		card.getSpecialForAction(m.getRequiredInt("action")).processMessage(m, p);
 
 	}
@@ -24,7 +20,7 @@ public class SpecialHandler extends GameHandler<CardGame<?, ?>> {
 		// call all our validators for the basics
 		super.validate(m, p);
 
-		Card card = getGame().getCard(m.getLong(CardValidator.CARDID));
+		Card card = ((CardGame<?, ?>) getGame()).getCard(m.getLong(CardValidator.CARDID));
 		Special special = card.getSpecialForAction(m.getRequiredInt("action"));
 		special.validate(m, p);
 	}

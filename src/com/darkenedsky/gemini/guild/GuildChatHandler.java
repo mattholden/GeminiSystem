@@ -11,16 +11,14 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildChatHandler extends Handler {
 
-	private SessionManagerService<?> sessions;
-
-	public GuildChatHandler(GuildService svc) {
-		sessions = (SessionManagerService<?>) svc.getServer().getService(SessionManagerService.class);
+	public GuildChatHandler() {
 		addValidator(new SessionValidator());
 	}
 
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
 
+		SessionManagerService<?> sessions = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 		String message = e.getRequiredString("message");
 
 		if (p.getGuild() == null || p.getGuildID() == null)

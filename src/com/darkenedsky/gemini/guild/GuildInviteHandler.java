@@ -16,17 +16,14 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildInviteHandler extends Handler {
 
-	private GuildService service;
-
-	public GuildInviteHandler(GuildService gs) {
-		service = gs;
+	public GuildInviteHandler() {
 		addValidator(new SessionValidator());
 
 	}
 
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 
 		if (p.getGuildID() != null)
 			throw new AlreadyGuildMemberException();
@@ -34,7 +31,7 @@ public class GuildInviteHandler extends Handler {
 		Long guildid = p.getGuildID();
 		Long playerid = e.getRequiredLong("playerid");
 
-		Guild guild = service.getGuild(guildid);
+		Guild guild = ((GuildService) getService()).getGuild(guildid);
 		if (guild == null)
 			throw new InvalidObjectException(guildid);
 
@@ -55,7 +52,7 @@ public class GuildInviteHandler extends Handler {
 			invited = sessionManager.loadPlayerFromDatabase(playerid);
 		}
 
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("insert into guildinvites (guildid, playerinvited, playerinvitedby) values(?,?,?);");
+		PreparedStatement ps = ((GuildService) getService()).getServer().getJDBC().prepareStatement("insert into guildinvites (guildid, playerinvited, playerinvitedby) values(?,?,?);");
 		ps.setLong(1, guildid);
 		ps.setLong(2, playerid);
 		ps.setLong(3, p.getPlayerID());

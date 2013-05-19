@@ -13,7 +13,7 @@ public class AnalyticsService extends Service {
 
 	public AnalyticsService() {
 
-		handlers.put(GET_ANALYTICS, new Handler() {
+		addHandler(GET_ANALYTICS, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 

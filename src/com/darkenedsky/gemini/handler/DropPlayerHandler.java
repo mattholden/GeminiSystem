@@ -1,14 +1,13 @@
 package com.darkenedsky.gemini.handler;
 
 import com.darkenedsky.gemini.ActionList;
-import com.darkenedsky.gemini.Game;
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 
-public class DropPlayerHandler extends GameHandler<Game<?>> {
+public class DropPlayerHandler extends GameHandler {
 
-	public DropPlayerHandler(Game<?> g) {
-		super(g);	
+	public DropPlayerHandler() {
+
 		addValidator(new PlayerInGameValidator());
 		addValidator(new SessionValidator());
 		addValidator(new GameStateValidator(ActionList.CREATE_GAME));

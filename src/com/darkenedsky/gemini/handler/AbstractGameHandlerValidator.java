@@ -2,19 +2,10 @@ package com.darkenedsky.gemini.handler;
 
 import com.darkenedsky.gemini.Game;
 
-public abstract class AbstractGameHandlerValidator<TGame extends Game<?>> implements GameHandlerValidator<TGame> {
+public abstract class AbstractGameHandlerValidator extends AbstractHandlerValidator {
 
-	private TGame game;
-	
-	@Override
-	public TGame getGame() {
-		return game;
+	public Game<?> getGame() {
+		return (Game<?>) getHandler().getService();
 	}
-
-	@Override
-	public void setGame(TGame g) {
-		game = g;
-	} 
-	
 
 }

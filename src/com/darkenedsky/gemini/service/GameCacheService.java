@@ -48,14 +48,14 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter>> exten
 	public GameCacheService(Class<TGame> theGameClass) {
 		gameClass = theGameClass;
 
-		handlers.put(CREATE_GAME, new Handler() {
+		addHandler(CREATE_GAME, new Handler() {
 			@Override
 			public void processMessage(Message e, Player p) throws Exception {
 				createGame(e, p);
 			}
 		});
 
-		handlers.put(GET_OPEN_GAMES, new Handler() {
+		addHandler(GET_OPEN_GAMES, new Handler() {
 			@Override
 			public void processMessage(Message e, Player p) throws Exception {
 				Message opens = new Message(GET_OPEN_GAMES);
@@ -69,7 +69,7 @@ public class GameCacheService<TGame extends Game<? extends GameCharacter>> exten
 			}
 		});
 
-		handlers.put(POLL, new Handler() {
+		addHandler(POLL, new Handler() {
 			@Override
 			public void processMessage(Message e, Player p) throws Exception {
 				Message reply = new Message(POLL);

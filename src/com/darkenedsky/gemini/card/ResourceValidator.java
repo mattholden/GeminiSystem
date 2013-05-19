@@ -1,13 +1,14 @@
 package com.darkenedsky.gemini.card;
+
 import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
-import com.darkenedsky.gemini.handler.GameHandlerValidator;
+import com.darkenedsky.gemini.handler.AbstractGameHandlerValidator;
 
-public class ResourceValidator implements GameHandlerValidator<CardGame<?,?>> {
+public class ResourceValidator extends AbstractGameHandlerValidator {
 
-	private CardGame<?,?> game;
 	private Resources cost;
-	
+	private CardGame<?, ?> game;
+
 	public ResourceValidator(Resources theCost) {
 		cost = theCost;
 	}
@@ -17,16 +18,5 @@ public class ResourceValidator implements GameHandlerValidator<CardGame<?,?>> {
 		CardCharacter<?> chr = game.getCharacter(p.getPlayerID());
 		chr.validateResources(cost);
 	}
-
-	@Override
-	public CardGame<?,?> getGame() {
-		return game;
-	}
-
-	@Override
-	public void setGame(CardGame<?,?> game) {
-		this.game = game;
-	} 
-	
 
 }

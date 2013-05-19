@@ -15,45 +15,39 @@ import com.stripe.model.Customer;
 
 public class CancelSubHandler extends AbstractStoreHandler {
 
-	private Message theSettings;
-	private EmailFactory email;
 	private static final Logger LOG = Logger.getLogger(CancelSubHandler.class);
-	
-	public CancelSubHandler(JDBCConnection j, Message settings, EmailFactory eFac) {
-		super(j);
-		theSettings = settings;
-		email = eFac;
-	}
 
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
-		
+
+		JDBCConnection jdbc = getService().getServer().getJDBC();
+		Message theSettings = getService().getServer().getSettings();
+		EmailFactory email = getService().getServer().getEmailFactory();
+
 		HashMap<String, String> account = this.lookupAccount(p);
 		Customer c = retrieveCustomer(account);
 		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("at_period_end", true);		
+		params.put("at_period_end", true);
 		com.stripe.model.Subscription s = c.cancelSubscription(params);
-				
+
 		PreparedStatement ps = jdbc.prepareStatement("update playeraccounts set subscriptionid = ? where playerid = ?;");
 		ps.setInt(1, theSettings.getInt("default_subscription_id"));
 		ps.setLong(2, p.getPlayerID());
-		if (0 == ps.executeUpdate()) 
+		if (0 == ps.executeUpdate())
 			throw new SQLUpdateFailedException();
-		
-		
+
 		Message m = new Message(STORE_CANCELSUB);
 		m.put("playerid", p.getPlayerID());
 		m.put("timesubwillend", s.getCurrentPeriodEnd());
 		p.pushOutgoingMessage(m);
-		
-		try { 
-			HashMap<String, String> fields = new HashMap<String, String>();		
-			fields.put("%TIMESUBWILLEND%", new java.sql.Timestamp(s.getCurrentPeriodEnd()).toString());		
+
+		try {
+			HashMap<String, String> fields = new HashMap<String, String>();
+			fields.put("%TIMESUBWILLEND%", new java.sql.Timestamp(s.getCurrentPeriodEnd()).toString());
 			email.sendEmail(c.getEmail(), "cancelsub", p.getLanguage(), fields);
-		}
-		catch (InvalidEmailTemplateException x) { 
+		} catch (InvalidEmailTemplateException x) {
 			LOG.warn("Email template \"cancelsub\" missing. No confirmation email sent to user.");
 		}
-	} 
-	
+	}
+
 }

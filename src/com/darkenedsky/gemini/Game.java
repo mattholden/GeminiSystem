@@ -110,30 +110,30 @@ public abstract class Game<TChar extends GameCharacter> extends Service implemen
 		// the creator of the game probably wants to play in it
 		addPlayer(e, p);
 
-		handlers.put(CHAT, new ChatHandler(this));
-		handlers.put(WHISPER, new WhisperHandler(this));
-		handlers.put(ADD_PLAYER, new AddPlayerHandler(this));
-		handlers.put(DROP_PLAYER, new DropPlayerHandler(this));
-		handlers.put(SET_READY, new SetReadyHandler(this));
-		handlers.put(START_GAME, new StartGameHandler(this));
-		handlers.put(FORFEIT, new ForfeitHandler(this));
-		handlers.put(TURN_END, new TurnEndHandler(this));
+		addHandler(CHAT, new ChatHandler());
+		addHandler(WHISPER, new WhisperHandler());
+		addHandler(ADD_PLAYER, new AddPlayerHandler());
+		addHandler(DROP_PLAYER, new DropPlayerHandler());
+		addHandler(SET_READY, new SetReadyHandler());
+		addHandler(START_GAME, new StartGameHandler());
+		addHandler(FORFEIT, new ForfeitHandler());
+		addHandler(TURN_END, new TurnEndHandler());
 
-		Handler h = new ExecuteBlockingHandler<Game<TChar>>(this);
-		handlers.put(CHOOSER, h);
-		handlers.put(CONFIRM_YES_NO, h);
-		handlers.put(CONFIRM_OK_CANCEL, h);
-		handlers.put(CALLBACK, h);
+		Handler h = new ExecuteBlockingHandler();
+		addHandler(CHOOSER, h);
+		addHandler(CONFIRM_YES_NO, h);
+		addHandler(CONFIRM_OK_CANCEL, h);
+		addHandler(CALLBACK, h);
 
 		// do nothing handler will "get the game state" -
 		// the service will then send the default game state message after this.
-		GameHandler<?> gameState = new GameHandler<Game<?>>(this) {
+		GameHandler gameState = new GameHandler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 			}
 		};
 		gameState.addValidator(new SessionValidator());
-		handlers.put(GAME_STATE, gameState);
+		addHandler(GAME_STATE, gameState);
 
 	}
 

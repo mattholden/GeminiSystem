@@ -22,9 +22,9 @@ public abstract class CardGame<TCard extends Card, TChar extends CardCharacter<T
 	public CardGame(long gid, Message e, Player p, Class<TChar> tcharClazz) throws Exception {
 		super(gid, e, p, tcharClazz);
 
-		SpecialHandler special = new SpecialHandler(this);
+		SpecialHandler special = new SpecialHandler();
 		for (int i = ActionList.CCG_SPECIAL0; i <= ActionList.CCG_SPECIAL9; i++)
-			this.handlers.put(i, special);
+			addHandler(i, special);
 
 	}
 

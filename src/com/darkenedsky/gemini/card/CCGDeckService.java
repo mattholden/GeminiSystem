@@ -37,49 +37,49 @@ public class CCGDeckService<TCard extends Card> extends Service {
 		minDeckSize = minSize;
 		maxDeckSize = maxSize;
 
-		handlers.put(CCG_GET_VALID_CARDS, new Handler() {
+		addHandler(CCG_GET_VALID_CARDS, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				getValidCards(m, p);
 			}
 		});
 
-		handlers.put(CCG_GET_DECKS, new Handler() {
+		addHandler(CCG_GET_DECKS, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				getDecks(p, p.getPlayerID());
 			}
 		});
 
-		handlers.put(CCG_GET_STARTER_DECKS, new Handler() {
+		addHandler(CCG_GET_STARTER_DECKS, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				getDecks(p, null);
 			}
 		});
 
-		handlers.put(CCG_CREATE_DECK, new Handler() {
+		addHandler(CCG_CREATE_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				createDeck(m, p);
 			}
 		});
 
-		handlers.put(CCG_DELETE_DECK, new Handler() {
+		addHandler(CCG_DELETE_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				deleteDeck(m, p);
 			}
 		});
 
-		handlers.put(CCG_CLONE_DECK, new Handler() {
+		addHandler(CCG_CLONE_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				cloneDeck(m, p);
 			}
 		});
 
-		handlers.put(CCG_EDIT_DECK, new Handler() {
+		addHandler(CCG_EDIT_DECK, new Handler() {
 			@Override
 			public void processMessage(Message m, Player p) throws Exception {
 				editDeck(m, p);

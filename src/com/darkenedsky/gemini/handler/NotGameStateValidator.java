@@ -7,28 +7,26 @@ import com.darkenedsky.gemini.Message;
 import com.darkenedsky.gemini.Player;
 import com.darkenedsky.gemini.exception.NotOnThisPhaseException;
 
-public class NotGameStateValidator extends AbstractGameHandlerValidator<Game<?>> {
+public class NotGameStateValidator extends AbstractHandlerValidator {
 
-	private Vector<Integer> vPhases = new Vector<Integer>();	
-	
+	private Vector<Integer> vPhases = new Vector<Integer>();
 
-	public NotGameStateValidator(Integer... phases) { 
-		for (Integer i : phases) { 
+	public NotGameStateValidator(Integer... phases) {
+		for (Integer i : phases) {
 			vPhases.add(i);
 		}
 	}
-	
+
 	@Override
 	public void validate(Message m, Player p) throws Exception {
-		
+
 		// check the phase
-		if (!vPhases.isEmpty()) { 
-			int phase = getGame().getState();
-			if (vPhases.contains(phase)) { 
+		if (!vPhases.isEmpty()) {
+			int phase = ((Game<?>) getHandler().getService()).getState();
+			if (vPhases.contains(phase)) {
 				throw new NotOnThisPhaseException();
 			}
 		}
 	}
-	
 
 }

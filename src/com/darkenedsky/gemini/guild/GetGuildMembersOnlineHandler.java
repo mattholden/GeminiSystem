@@ -10,16 +10,15 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GetGuildMembersOnlineHandler extends Handler {
 
-	private SessionManagerService<?> sessions;
-
-	public GetGuildMembersOnlineHandler(GuildService svc) {
-		sessions = (SessionManagerService<?>) svc.getServer().getService(SessionManagerService.class);
+	public GetGuildMembersOnlineHandler() {
 		addValidator(new SessionValidator());
 
 	}
 
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
+
+		SessionManagerService<?> sessions = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 
 		if (p.getGuildID() == null)
 			throw new NotGuildMemberException();

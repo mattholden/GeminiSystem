@@ -10,10 +10,7 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildDeclineHandler extends Handler {
 
-	private GuildService service;
-
-	public GuildDeclineHandler(GuildService gs) {
-		service = gs;
+	public GuildDeclineHandler() {
 		addValidator(new SessionValidator());
 
 	}
@@ -21,12 +18,12 @@ public class GuildDeclineHandler extends Handler {
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
 
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 		Long guildid = e.getRequiredLong("guildid");
 
 		// faster to just delete them and then ask how many we deleted, rather
 		// than throwing an exception if there weren't any
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("delete from guildinvites where guildid = ? and playerinvited = ?;");
+		PreparedStatement ps = getService().getServer().getJDBC().prepareStatement("delete from guildinvites where guildid = ? and playerinvited = ?;");
 		ps.setLong(1, guildid);
 		ps.setLong(2, p.getPlayerID());
 		int invites = ps.executeUpdate();

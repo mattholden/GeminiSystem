@@ -13,10 +13,7 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildLeaveHandler extends Handler {
 
-	private GuildService service;
-
-	public GuildLeaveHandler(GuildService gs) {
-		service = gs;
+	public GuildLeaveHandler() {
 		addValidator(new SessionValidator());
 
 	}
@@ -31,9 +28,9 @@ public class GuildLeaveHandler extends Handler {
 		p.setGuildID(null);
 		p.setGuildRank(null);
 		p.setGuild(null);
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("update players set guildid = null, guildrankid = null where playerid = ?;");
+		PreparedStatement ps = getService().getServer().getJDBC().prepareStatement("update players set guildid = null, guildrankid = null where playerid = ?;");
 		ps.setLong(1, p.getPlayerID());
 		if (ps.executeUpdate() != 0)
 			throw new SQLUpdateFailedException();

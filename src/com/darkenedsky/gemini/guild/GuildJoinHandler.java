@@ -16,31 +16,29 @@ import com.darkenedsky.gemini.service.SessionManagerService;
 
 public class GuildJoinHandler extends Handler {
 
-	private GuildService service;
+	public GuildJoinHandler() {
 
-	public GuildJoinHandler(GuildService gs) {
-		service = gs;
 		addValidator(new SessionValidator());
 	}
 
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
 
-		SessionManagerService<?> sessionManager = (SessionManagerService<?>) service.getServer().getService(SessionManagerService.class);
+		SessionManagerService<?> sessionManager = (SessionManagerService<?>) getService().getServer().getService(SessionManagerService.class);
 
 		if (p.getGuildID() != null)
 			throw new AlreadyGuildMemberException();
 
 		long guildid = e.getRequiredLong("guildid");
 
-		Guild guild = service.getGuild(guildid);
+		Guild guild = ((GuildService) getService()).getGuild(guildid);
 		if (guild == null)
 			throw new InvalidObjectException(guildid);
 
 		// make sure you're invited
 		if (!guild.isOpenEnrollment()) {
 			ResultSet inv = null;
-			PreparedStatement ps1 = service.getServer().getJDBC().prepareStatement("select * from guildinvites where guildid = ? and playerinvited = ?;");
+			PreparedStatement ps1 = getService().getServer().getJDBC().prepareStatement("select * from guildinvites where guildid = ? and playerinvited = ?;");
 			ps1.setLong(1, guildid);
 			ps1.setLong(2, p.getPlayerID());
 			try {
@@ -61,7 +59,7 @@ public class GuildJoinHandler extends Handler {
 		p.setGuild(guild);
 		p.setGuildRank(9);
 
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("update players set guildid = ?, guildrank = 9 where playerid = ?;");
+		PreparedStatement ps = getService().getServer().getJDBC().prepareStatement("update players set guildid = ?, guildrank = 9 where playerid = ?;");
 		ps.setLong(2, guildid);
 		ps.setLong(2, p.getPlayerID());
 		if (ps.executeUpdate() != 0)
@@ -69,7 +67,7 @@ public class GuildJoinHandler extends Handler {
 
 		// Don't need these anymore if you're joining...
 		if (!guild.isOpenEnrollment()) {
-			PreparedStatement ps1 = service.getServer().getJDBC().prepareStatement("delete from guildinvites where guildid = ? and playerinvited = ?;");
+			PreparedStatement ps1 = getService().getServer().getJDBC().prepareStatement("delete from guildinvites where guildid = ? and playerinvited = ?;");
 			ps1.setLong(1, guildid);
 			ps1.setLong(2, p.getPlayerID());
 			if (ps1.executeUpdate() == 0)

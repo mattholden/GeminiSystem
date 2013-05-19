@@ -21,18 +21,11 @@ import com.darkenedsky.gemini.handler.SessionValidator;
  */
 public class GuildCreateHandler extends Handler {
 
-	/** The parent GuildService */
-	private GuildService service;
-
 	/**
 	 * Construct the handler
 	 * 
-	 * @param gs
-	 *            the parent GuildService
 	 */
-	public GuildCreateHandler(GuildService gs) {
-		super();
-		service = gs;
+	public GuildCreateHandler() {
 		addValidator(new SessionValidator());
 
 	}
@@ -45,7 +38,7 @@ public class GuildCreateHandler extends Handler {
 
 		String name = m.getRequiredString("name");
 
-		PreparedStatement ps = service.getServer().getJDBC().prepareStatement("select * from create_guild(?,?);");
+		PreparedStatement ps = getService().getServer().getJDBC().prepareStatement("select * from create_guild(?,?);");
 		ps.setLong(1, p.getPlayerID());
 		ps.setString(2, name);
 		ResultSet set = null;

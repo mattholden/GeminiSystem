@@ -12,16 +12,16 @@ public class GuildService extends Service {
 
 	public GuildService() {
 
-		handlers.put(GUILD_CHAT, new GuildChatHandler(this));
-		handlers.put(GUILD_GET, new GetGuildHandler(this));
-		handlers.put(GUILD_GET_MEMBERS_ONLINE, new GetGuildMembersOnlineHandler(this));
-		handlers.put(GUILD_JOIN, new GuildJoinHandler(this));
-		handlers.put(GUILD_LEAVE, new GuildLeaveHandler(this));
-		handlers.put(GUILD_INVITE, new GuildInviteHandler(this));
-		handlers.put(GUILD_KICK, new GuildKickHandler(this));
-		handlers.put(GUILD_SETRANK, new GuildSetRankHandler(this));
-		handlers.put(GUILD_EDIT, new GuildEditHandler(this));
-		handlers.put(GUILD_DECLINE, new GuildDeclineHandler(this));
+		addHandler(GUILD_CHAT, new GuildChatHandler());
+		addHandler(GUILD_GET, new GetGuildHandler());
+		addHandler(GUILD_GET_MEMBERS_ONLINE, new GetGuildMembersOnlineHandler());
+		addHandler(GUILD_JOIN, new GuildJoinHandler());
+		addHandler(GUILD_LEAVE, new GuildLeaveHandler());
+		addHandler(GUILD_INVITE, new GuildInviteHandler());
+		addHandler(GUILD_KICK, new GuildKickHandler());
+		addHandler(GUILD_SETRANK, new GuildSetRankHandler());
+		addHandler(GUILD_EDIT, new GuildEditHandler());
+		addHandler(GUILD_DECLINE, new GuildDeclineHandler());
 	}
 
 	public Guild getGuild(long guildid) throws Exception {

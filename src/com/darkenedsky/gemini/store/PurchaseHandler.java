@@ -20,59 +20,79 @@ import com.stripe.model.Invoice;
 public class PurchaseHandler extends AbstractStoreHandler {
 
 	private static final Logger LOG = Logger.getLogger(PurchaseHandler.class);
-	
-	private EmailFactory email;
-	
-	public PurchaseHandler(JDBCConnection j, EmailFactory e) { 
-		super(j);
-		email = e;
+
+	private Charge chargeCustomer(Customer customer, StoreItem item, int price, Subscription sub) throws Exception {
+
+		if (sub != null) {
+			Map<String, Object> subscriptionParams = new HashMap<String, Object>();
+			subscriptionParams.put("plan", sub.getPlanKey());
+			subscriptionParams.put("prorate", "true");
+			customer.updateSubscription(subscriptionParams);
+
+			Map<String, Object> invoiceItemParams = new HashMap<String, Object>();
+			invoiceItemParams.put("customer", customer.getId());
+			Invoice invoice = Invoice.create(invoiceItemParams);
+			Charge charge = Charge.retrieve(invoice.getCharge());
+			return charge;
+		} else {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("amount", price);
+			params.put("currency", "usd");
+			params.put("customer", customer.getId());
+			params.put("description", item.getDetailsURL());
+			Charge charge = Charge.create(params);
+
+			if (charge.getFailureMessage() != null)
+				throw new ChargeProcessingException(charge.getFailureMessage());
+			return charge;
+		}
+
 	}
-	
+
 	@Override
 	public void processMessage(Message e, Player p) throws Exception {
-		
+
 		Customer customer;
 		HashMap<String, String> account = lookupAccount(p);
-		
-		if (account.get("stripecustomerid") == null) { 
+
+		if (account.get("stripecustomerid") == null) {
 			customer = createCustomer(e, p, account);
-		}
-		else { 
+		} else {
 			customer = retrieveCustomer(account);
 		}
-		
+
 		PromoCode promo = null;
 		int itemid = -1;
 		double discount = 0.00;
-		
-		if (e.getString("promocode") != null) { 
+
+		if (e.getString("promocode") != null) {
 			promo = lookupPromo(e.getString("promocode"));
 			itemid = promo.getStoreItemID();
 			discount = promo.getDiscountPercent();
-		}
-		else 
+		} else
 			itemid = e.getInt("storeitemid");
-		
+
 		StoreItem item = lookupItem(itemid);
 		Subscription subscription = lookupSubscription(item);
-		
+
 		int price = item.getPriceCents();
-		price -= (int)(price * (1.00-discount));
-		
-		Charge charge = chargeCustomer(customer, item, price, subscription);		
+		price -= (int) (price * (1.00 - discount));
+
+		Charge charge = chargeCustomer(customer, item, price, subscription);
 		try {
 			recordPurchase(e, p, customer, charge, item, price, promo);
-		}
-		catch (Exception x) { 
+		} catch (Exception x) {
 			if (charge != null)
 				charge.refund();
 		}
-			
-		
-	} 
-	
-	private void recordPurchase(Message m, Player player, Customer customer, Charge charge, StoreItem item, int price, PromoCode promo) throws Exception { 
-		
+
+	}
+
+	private void recordPurchase(Message m, Player player, Customer customer, Charge charge, StoreItem item, int price, PromoCode promo) throws Exception {
+
+		JDBCConnection jdbc = getService().getServer().getJDBC();
+		EmailFactory email = getService().getServer().getEmailFactory();
+
 		PreparedStatement ps = jdbc.prepareStatement("select * from record_purchase(?,?,?,?,?,?);");
 		ps.setInt(1, item.getStoreItemID());
 		ps.setLong(2, player.getPlayerID());
@@ -80,10 +100,10 @@ public class PurchaseHandler extends AbstractStoreHandler {
 		ps.setInt(4, promo.getPromoID());
 		ps.setInt(5, price);
 		ps.setString(6, charge.getInvoice());
-		if (ps.executeUpdate() == 0) { 
+		if (ps.executeUpdate() == 0) {
 			throw new SQLUpdateFailedException();
 		}
-			
+
 		Message msg = new Message(STORE_PURCHASE);
 		msg.put("storeitemid", item.getStoreItemID());
 		msg.put("pricecents", price);
@@ -91,47 +111,16 @@ public class PurchaseHandler extends AbstractStoreHandler {
 		msg.put("discountpercent", promo.getDiscountPercent());
 		msg.put("stripechargeid", charge.getId());
 		player.pushOutgoingMessage(msg);
-		
+
 		try {
 			HashMap<String, String> fields = new HashMap<String, String>();
-			fields.put("%PRICE%", "$" + (price/100) + "." + (price%100));
+			fields.put("%PRICE%", "$" + (price / 100) + "." + (price % 100));
 			fields.put("%CHARGEID%", charge.getId());
 			fields.put("%PROMOCODE%", promo.getPromoCode());
 			email.sendEmail(customer.getEmail(), "purchase", player.getLanguage(), fields);
-		}
-		catch (InvalidEmailTemplateException x) { 
+		} catch (InvalidEmailTemplateException x) {
 			LOG.warn("Email template \"purchase\" missing. No confirmation email sent to user.");
 		}
 	}
-	
-	private Charge chargeCustomer(Customer customer, StoreItem item, int price, Subscription sub) throws Exception { 
-		
-		if (sub != null) {
-			Map<String, Object> subscriptionParams = new HashMap<String, Object>();
-			subscriptionParams.put("plan", sub.getPlanKey());
-			subscriptionParams.put("prorate", "true");					
-			customer.updateSubscription(subscriptionParams);
-			
-			Map<String, Object> invoiceItemParams = new HashMap<String, Object>();
-			invoiceItemParams.put("customer", customer.getId());
-			Invoice invoice = Invoice.create(invoiceItemParams);
-			Charge charge = Charge.retrieve(invoice.getCharge());
-			return charge;
-		}
-		else { 
-			Map<String, Object> params = new HashMap<String, Object>();			
-			params.put("amount", price);
-			params.put("currency", "usd");
-			params.put("customer", customer.getId());
-			params.put("description", item.getDetailsURL());		
-			Charge charge = Charge.create(params);
-			
-			if (charge.getFailureMessage() != null)			
-				throw new ChargeProcessingException(charge.getFailureMessage());
-			return charge;
-		}
-		
-	}
-	
-	
+
 }
